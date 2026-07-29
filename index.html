@@ -973,6 +973,28 @@ document.getElementById('eventoPreviewLocal').textContent = local || '(local nã
 preview.style.display = 'block';
 }
 
+// ===== FUNÇÃO CRC16 CORRIGIDA PARA PIX =====
+function calcularCRC16Corrigido(payload) {
+  // Remove o "6304" do final
+  const dados = payload.slice(0, -4);
+  let crc = 0xFFFF;
+  
+  for (let i = 0; i < dados.length; i++) {
+    crc ^= dados.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc <<= 1;
+      }
+      crc &= 0xFFFF;
+    }
+  }
+  
+  const crcHex = crc.toString(16).toUpperCase().padStart(4, '0');
+  return crcHex;
+}
+
 // ===== PIX =====
 function gerarPix() {
   const chave = document.getElementById('pix-chave').value.trim();
@@ -1091,27 +1113,6 @@ function gerarPix() {
   
   // Mostra o payload no console para debug
   console.log('Payload PIX gerado:', payload);
-}
-
-// Função CRC16 para Pix
-function calcularCRC16(payload) {
-// Remove os 4 caracteres "6304" do final para calcular o CRC
-const dados = payload.slice(0, -4);
-let crc = 0xFFFF;
-
-for (let i = 0; i < dados.length; i++) {
-crc ^= dados.charCodeAt(i) << 8;
-for (let j = 0; j < 8; j++) {
-if (crc & 0x8000) {
-crc = (crc << 1) ^ 0x1021;
-} else {
-crc <<= 1;
-}
-crc &= 0xFFFF;
-}
-}
-
-return crc.toString(16).toUpperCase().padStart(4, '0');
 }
 
 // ===== WHATSAPP =====
