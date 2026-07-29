@@ -989,47 +989,94 @@ return;
 const valorLimpo = valor.replace(',', '.').replace(/[^0-9.]/g, '');
 const valorNumerico = parseFloat(valorLimpo) || 0;
 
-// Monta payload Pix (formato BR Code simplificado)
-let payload = '000201010211';
+// ===== CONSTRUÇÃO DO PAYLOAD PIX (FORMATO BR CODE) =====
+let payload = '';
 
-// Determina tipo da chave
-let chaveTipo = '01'; // CPF
+// 1. Payload Format Indicator (00)
+payload += '000201';
+
+// 2. Merchant Account Information (26)
+//    26 = Merchant Account Information (GUI)
+//    580014BR.GOV.BCB.PIX = GUI do Pix
+let gui = 'BR.GOV.BCB.PIX';
+let guiTamanho = String(gui.length).padStart(2, '0');
+let pixInfo = guiTamanho + gui;
+
+// Determina o tipo da chave
+let chaveTipo = '';
 const chaveLimpa = chave.replace(/\s/g, '');
-if (chaveLimpa.includes('@')) chaveTipo = '02'; // e-mail
-else if (/^\d{11}$/.test(chaveLimpa.replace(/\D/g, ''))) chaveTipo = '01'; // CPF
-else if (/^\d{14}$/.test(chaveLimpa.replace(/\D/g, ''))) chaveTipo = '03'; // CNPJ
-else if (/^\+?\d{10,15}$/.test(chaveLimpa.replace(/\D/g, ''))) chaveTipo = '04'; // telefone
-else chaveTipo = '00'; // aleatória (UUID)
 
-const tamanhoChave = String(chaveLimpa.length).padStart(2, '0');
-payload += `26580014BR.GOV.BCB.PIX${chaveTipo}${tamanhoChave}${chaveLimpa}`;
+if (chaveLimpa.includes('@')) {
+chaveTipo = '02'; // E-mail
+} else if (/^\d{11}$/.test(chaveLimpa.replace(/\D/g, ''))) {
+chaveTipo = '01'; // CPF
+} else if (/^\d{14}$/.test(chaveLimpa.replace(/\D/g, ''))) {
+chaveTipo = '03'; // CNPJ
+} else if (/^\+?\d{10,15}$/.test(chaveLimpa.replace(/\D/g, ''))) {
+chaveTipo = '04'; // Telefone
+} else {
+chaveTipo = '00'; // Aleatória
+}
 
-// Valor (se informado)
+// Adiciona a chave no formato correto
+let chaveFormatada = chaveTipo + String(chaveLimpa.length).padStart(2, '0') + chaveLimpa;
+pixInfo += chaveFormatada;
+
+// Se tiver descrição, adiciona como campo 62 (Additional Data Field)
+if (descricao) {
+const descLimpa = descricao.substring(0, 50);
+// Campo 62 = Additional Data Field Template
+// Subcampo 05 = Texto livre
+const textoCompleto = '05' + String(descLimpa.length).padStart(2, '0') + descLimpa;
+pixInfo += textoCompleto;
+}
+
+// Tamanho total do campo 26
+let tamanhoPixInfo = String(pixInfo.length).padStart(2, '0');
+payload += '26' + tamanhoPixInfo + pixInfo;
+
+// 3. Merchant Category Code (52) - sempre 0000 para Pix
+payload += '52040000';
+
+// 4. Transaction Currency (53) - 986 = BRL
+payload += '5303986';
+
+// 5. Transaction Amount (54) - se tiver valor
 if (valorNumerico > 0) {
 const valorFormatado = valorNumerico.toFixed(2);
 const tamanhoValor = String(valorFormatado.length).padStart(2, '0');
-payload += `54${tamanhoValor}${valorFormatado}`;
+payload += '54' + tamanhoValor + valorFormatado;
 }
 
-// Identificador
+// 6. Country Code (58) - BR
+payload += '5802BR';
+
+// 7. Merchant Name (59) - opcional
+const nomeLoja = 'QR Code PIX';
+const tamanhoNome = String(nomeLoja.length).padStart(2, '0');
+payload += '59' + tamanhoNome + nomeLoja;
+
+// 8. Merchant City (60) - opcional
+const cidade = 'Brasil';
+const tamanhoCidade = String(cidade.length).padStart(2, '0');
+payload += '60' + tamanhoCidade + cidade;
+
+// 9. Additional Data Field Template (62) - identificador
 if (id) {
 const idLimpo = id.replace(/\s/g, '').substring(0, 25);
 const tamanhoId = String(idLimpo.length).padStart(2, '0');
-payload += `05${tamanhoId}${idLimpo}`;
+// Campo 05 = Texto livre para identificador
+payload += '62' + String(('05' + tamanhoId + idLimpo).length).padStart(2, '0') + '05' + tamanhoId + idLimpo;
 }
 
-// Descrição
-if (descricao) {
-const descLimpa = descricao.substring(0, 50);
-const tamanhoDesc = String(descLimpa.length).padStart(2, '0');
-payload += `62${tamanhoDesc}${descLimpa}`;
-}
-
-// Adiciona CRC16
+// 10. CRC16 (63) - será calculado depois
 payload += '6304';
-const crc = calcularCRC16(payload);
-payload += crc;
 
+// 11. Calcula o CRC16 corretamente
+const crc = calcularCRC16(payload);
+payload = payload.slice(0, -4) + crc;
+
+// Renderiza o QR Code
 renderizarQR('qrcode-pix', payload);
 document.getElementById('infoPix').textContent = `PIX: ${chave}${valorNumerico > 0 ? ' | R$ ' + valorNumerico.toFixed(2) : ''}`;
 
@@ -1043,9 +1090,12 @@ preview.style.display = 'block';
 
 // Função CRC16 para Pix
 function calcularCRC16(payload) {
+// Remove os 4 caracteres "6304" do final para calcular o CRC
+const dados = payload.slice(0, -4);
 let crc = 0xFFFF;
-for (let i = 0; i < payload.length; i++) {
-crc ^= payload.charCodeAt(i) << 8;
+
+for (let i = 0; i < dados.length; i++) {
+crc ^= dados.charCodeAt(i) << 8;
 for (let j = 0; j < 8; j++) {
 if (crc & 0x8000) {
 crc = (crc << 1) ^ 0x1021;
@@ -1055,6 +1105,7 @@ crc <<= 1;
 crc &= 0xFFFF;
 }
 }
+
 return crc.toString(16).toUpperCase().padStart(4, '0');
 }
 
