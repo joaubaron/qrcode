@@ -1,6 +1,6 @@
 // Service Worker 
 // Toda vez que trocar fotos/áudios, a versão será atualizada automaticamente pelo deploy.yml
-const CACHE_VERSION = '29.07.2026-1332';
+const CACHE_VERSION = '29.07.2026-1345';
 const CACHE_NAME = `qrcode-${CACHE_VERSION}`;
 const ASSETS = [
 
@@ -23,7 +23,7 @@ return cache.addAll(ASSETS);
 );
 });
 
-// Ativação - limpa caches antigos
+// Ativação - limpa todos caches antigos
 self.addEventListener('activate', (event) => {
 event.waitUntil(
 caches.keys().then((cacheNames) => {
