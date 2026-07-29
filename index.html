@@ -194,7 +194,7 @@ margin-top: 4px;
 .btn-gerar.texto { background: #6c757d; }
 .btn-gerar.email { background: #d64545; }
 .btn-gerar.evento { background: #e74c3c; }
-.btn-gerar.sms { background: #17a2b8; }
+.btn-gerar.pix { background: #32BCAD; }
 .btn-gerar.whatsapp { background: #25d366; }
 .btn-gerar.contato { background: #6f42c1; }
 .btn-gerar.local { background: #fd7e14; }
@@ -433,6 +433,20 @@ margin-bottom: 10px;
 .offline-banner.visible {
 display: block;
 }
+
+/* ===== PIX PREVIEW ===== */
+.info-pix-legivel {
+font-size: 12px;
+color: #555;
+background: #f8f9fa;
+padding: 8px 12px;
+border-radius: 8px;
+margin-bottom: 8px;
+text-align: left;
+border-left: 3px solid #32BCAD;
+}
+
+.info-pix-legivel strong { color: #32BCAD; }
 </style>
 </head>
 <body>
@@ -450,7 +464,7 @@ display: block;
 <button class="tab-btn" data-tab="tab-texto" onclick="trocarAba(this, 'tab-texto')">📝 Texto</button>
 <button class="tab-btn" data-tab="tab-email" onclick="trocarAba(this, 'tab-email')">📧 E-mail</button>
 <button class="tab-btn" data-tab="tab-evento" onclick="trocarAba(this, 'tab-evento')">📅 Evento</button>
-<button class="tab-btn" data-tab="tab-sms" onclick="trocarAba(this, 'tab-sms')">💬 SMS</button>
+<button class="tab-btn" data-tab="tab-pix" onclick="trocarAba(this, 'tab-pix')">💰 PIX</button>
 <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">🟢 WhatsApp</button>
 <button class="tab-btn" data-tab="tab-contato" onclick="trocarAba(this, 'tab-contato')">👤 Contato</button>
 <button class="tab-btn" data-tab="tab-local" onclick="trocarAba(this, 'tab-local')">📍 Local</button>
@@ -564,19 +578,37 @@ display: block;
 <div class="info">📅 <span id="infoEvento">Nenhum QR Code gerado</span></div>
 </div>
 
-<!-- ===== SMS ===== -->
-<div id="tab-sms" class="tab-content">
+<!-- ===== PIX ===== -->
+<div id="tab-pix" class="tab-content">
 <div class="campo">
-<label>💬 Número de telefone</label>
-<input type="tel" id="sms-numero" placeholder="Ex: +55 47 99999-9999">
+<label>💰 Chave Pix</label>
+<input type="text" id="pix-chave" placeholder="CPF, e-mail, telefone ou chave aleatória">
+</div>
+<div class="linha-dupla">
+<div class="campo">
+<label>💵 Valor (opcional)</label>
+<input type="text" id="pix-valor" placeholder="Ex: 50,00">
 </div>
 <div class="campo">
-<label>✏️ Mensagem (opcional)</label>
-<textarea id="sms-mensagem" placeholder="Texto do SMS..."></textarea>
+<label>🏷️ Identificador (opcional)</label>
+<input type="text" id="pix-id" placeholder="Ex: PEDIDO-123">
 </div>
-<button class="btn-gerar sms" onclick="gerarSms()">Gerar QR Code</button>
-<div class="qr-wrapper"><div id="qrcode-sms"></div></div>
-<div class="info">💬 <span id="infoSms">Nenhum QR Code gerado</span></div>
+</div>
+<div class="campo">
+<label>📝 Descrição (opcional)</label>
+<input type="text" id="pix-descricao" placeholder="Ex: Pagamento da fatura">
+</div>
+<button class="btn-gerar pix" onclick="gerarPix()">Gerar QR Code PIX</button>
+
+<div class="info-pix-legivel" id="pixPreview" style="display:none;">
+💰 <strong>PIX</strong><br>
+🔑 Chave: <span id="pixPreviewChave"></span><br>
+💵 Valor: <span id="pixPreviewValor">R$ 0,00</span><br>
+📝 Descrição: <span id="pixPreviewDescricao">—</span>
+</div>
+
+<div class="qr-wrapper"><div id="qrcode-pix"></div></div>
+<div class="info">💰 <span id="infoPix">Nenhum QR Code gerado</span></div>
 </div>
 
 <!-- ===== WHATSAPP ===== -->
@@ -695,7 +727,7 @@ const ABAS = {
 'tab-texto':     { qrId: 'qrcode-texto',     infoId: 'infoTexto',     arquivo: 'qrcode-texto.png' },
 'tab-email':     { qrId: 'qrcode-email',     infoId: 'infoEmail',     arquivo: 'qrcode-email.png' },
 'tab-evento':    { qrId: 'qrcode-evento',    infoId: 'infoEvento',    arquivo: 'qrcode-evento.png' },
-'tab-sms':       { qrId: 'qrcode-sms',       infoId: 'infoSms',       arquivo: 'qrcode-sms.png' },
+'tab-pix':       { qrId: 'qrcode-pix',       infoId: 'infoPix',       arquivo: 'qrcode-pix.png' },
 'tab-whatsapp':  { qrId: 'qrcode-whatsapp',  infoId: 'infoWhatsapp',  arquivo: 'qrcode-whatsapp.png' },
 'tab-contato':   { qrId: 'qrcode-contato',   infoId: 'infoContato',   arquivo: 'qrcode-contato.png' },
 'tab-local':     { qrId: 'qrcode-local',     infoId: 'infoLocal',     arquivo: 'qrcode-local.png' }
@@ -941,21 +973,92 @@ document.getElementById('eventoPreviewLocal').textContent = local || '(local nã
 preview.style.display = 'block';
 }
 
-function gerarSms() {
-const numero = document.getElementById('sms-numero').value.trim();
-const mensagem = document.getElementById('sms-mensagem').value.trim();
-if (!numero) { 
-mostrarModal('⚠️', 'Campo Vazio', 'Digite um número de telefone para o SMS.', 'warning');
-return; 
+// ===== PIX =====
+function gerarPix() {
+const chave = document.getElementById('pix-chave').value.trim();
+const valor = document.getElementById('pix-valor').value.trim();
+const id = document.getElementById('pix-id').value.trim();
+const descricao = document.getElementById('pix-descricao').value.trim();
+
+if (!chave) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite a chave Pix (CPF, e-mail, telefone ou chave aleatória).', 'warning');
+return;
 }
 
-let txt = `sms:${apenasDigitos(numero)}`;
-if (mensagem) txt += `?body=${encodeURIComponent(mensagem)}`;
+// Remove espaços e formata valor
+const valorLimpo = valor.replace(',', '.').replace(/[^0-9.]/g, '');
+const valorNumerico = parseFloat(valorLimpo) || 0;
 
-renderizarQR('qrcode-sms', txt);
-document.getElementById('infoSms').textContent = txt;
+// Monta payload Pix (formato BR Code simplificado)
+let payload = '000201010211';
+
+// Determina tipo da chave
+let chaveTipo = '01'; // CPF
+const chaveLimpa = chave.replace(/\s/g, '');
+if (chaveLimpa.includes('@')) chaveTipo = '02'; // e-mail
+else if (/^\d{11}$/.test(chaveLimpa.replace(/\D/g, ''))) chaveTipo = '01'; // CPF
+else if (/^\d{14}$/.test(chaveLimpa.replace(/\D/g, ''))) chaveTipo = '03'; // CNPJ
+else if (/^\+?\d{10,15}$/.test(chaveLimpa.replace(/\D/g, ''))) chaveTipo = '04'; // telefone
+else chaveTipo = '00'; // aleatória (UUID)
+
+const tamanhoChave = String(chaveLimpa.length).padStart(2, '0');
+payload += `26580014BR.GOV.BCB.PIX${chaveTipo}${tamanhoChave}${chaveLimpa}`;
+
+// Valor (se informado)
+if (valorNumerico > 0) {
+const valorFormatado = valorNumerico.toFixed(2);
+const tamanhoValor = String(valorFormatado.length).padStart(2, '0');
+payload += `54${tamanhoValor}${valorFormatado}`;
 }
 
+// Identificador
+if (id) {
+const idLimpo = id.replace(/\s/g, '').substring(0, 25);
+const tamanhoId = String(idLimpo.length).padStart(2, '0');
+payload += `05${tamanhoId}${idLimpo}`;
+}
+
+// Descrição
+if (descricao) {
+const descLimpa = descricao.substring(0, 50);
+const tamanhoDesc = String(descLimpa.length).padStart(2, '0');
+payload += `62${tamanhoDesc}${descLimpa}`;
+}
+
+// Adiciona CRC16
+payload += '6304';
+const crc = calcularCRC16(payload);
+payload += crc;
+
+renderizarQR('qrcode-pix', payload);
+document.getElementById('infoPix').textContent = `PIX: ${chave}${valorNumerico > 0 ? ' | R$ ' + valorNumerico.toFixed(2) : ''}`;
+
+// Preview
+const preview = document.getElementById('pixPreview');
+document.getElementById('pixPreviewChave').textContent = chave;
+document.getElementById('pixPreviewValor').textContent = valorNumerico > 0 ? `R$ ${valorNumerico.toFixed(2).replace('.', ',')}` : 'R$ 0,00';
+document.getElementById('pixPreviewDescricao').textContent = descricao || '—';
+preview.style.display = 'block';
+}
+
+// Função CRC16 para Pix
+function calcularCRC16(payload) {
+let crc = 0xFFFF;
+for (let i = 0; i < payload.length; i++) {
+crc ^= payload.charCodeAt(i) << 8;
+for (let j = 0; j < 8; j++) {
+if (crc & 0x8000) {
+crc = (crc << 1) ^ 0x1021;
+} else {
+crc <<= 1;
+}
+crc &= 0xFFFF;
+}
+}
+return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+// ===== WHATSAPP =====
 function gerarWhatsapp() {
 const numero = document.getElementById('whats-numero').value.trim();
 const mensagem = document.getElementById('whats-mensagem').value.trim();
@@ -972,6 +1075,7 @@ renderizarQR('qrcode-whatsapp', txt);
 document.getElementById('infoWhatsapp').textContent = txt;
 }
 
+// ===== CONTATO =====
 function gerarContato() {
 const nome = document.getElementById('contato-nome').value.trim();
 const telefone = document.getElementById('contato-telefone').value.trim();
@@ -992,6 +1096,7 @@ renderizarQR('qrcode-contato', txt);
 document.getElementById('infoContato').textContent = `${nome}${telefone ? ' · ' + telefone : ''}${email ? ' · ' + email : ''}`;
 }
 
+// ===== LOCALIZAÇÃO =====
 function gerarLocalizacao() {
 const endereco = document.getElementById('local-endereco').value.trim();
 if (!endereco) { 
@@ -1004,6 +1109,7 @@ renderizarQR('qrcode-local', txt);
 document.getElementById('infoLocal').textContent = endereco;
 }
 
+// ===== DOWNLOAD =====
 function baixarPNG() {
 const config = ABAS[abaAtual];
 const div = document.getElementById(config.qrId);
@@ -1058,6 +1164,7 @@ link.href = canvasDownload.toDataURL('image/png');
 link.click();
 }
 
+// ===== LIMPAR =====
 function limparTudo() {
 Object.values(ABAS).forEach(cfg => {
 document.getElementById(cfg.qrId).innerHTML = '';
@@ -1084,8 +1191,14 @@ document.getElementById('evento-hora').value = '';
 document.getElementById('evento-local').value = '';
 document.getElementById('evento-descricao').value = '';
 document.getElementById('eventoPreview').style.display = 'none';
-document.getElementById('sms-numero').value = '';
-document.getElementById('sms-mensagem').value = '';
+
+// PIX
+document.getElementById('pix-chave').value = '';
+document.getElementById('pix-valor').value = '';
+document.getElementById('pix-id').value = '';
+document.getElementById('pix-descricao').value = '';
+document.getElementById('pixPreview').style.display = 'none';
+
 document.getElementById('whats-numero').value = '';
 document.getElementById('whats-mensagem').value = '';
 document.getElementById('contato-nome').value = '';
@@ -1142,7 +1255,7 @@ const geradores = {
 'tab-texto': gerarTexto,
 'tab-email': gerarEmail,
 'tab-evento': gerarEvento,
-'tab-sms': gerarSms,
+'tab-pix': gerarPix,
 'tab-whatsapp': gerarWhatsapp,
 'tab-contato': gerarContato,
 'tab-local': gerarLocalizacao
