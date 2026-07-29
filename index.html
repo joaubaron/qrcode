@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de QR Code</title>
     
-    <!-- Carrega do CDN primeiro -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     
-    <!-- Fallback simples para offline -->
     <script>
         if (typeof qrcode === 'undefined') {
             document.write('<script src="qrcode.min.js"><\/script>');
@@ -283,7 +281,6 @@
             .tab-btn { font-size: 11px; padding: 8px 2px; }
         }
 
-        /* ===== MODAL PERSONALIZADO ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -486,15 +483,19 @@
         <div class="info">📧 <span id="infoEmail">Nenhum QR Code gerado</span></div>
     </div>
 
-    <!-- ===== TELEFONE ===== -->
+    <!-- ===== TELEFONE (AGORA COM NOME + TELEFONE PARA CONTATO) ===== -->
     <div id="tab-telefone" class="tab-content">
+        <div class="campo">
+            <label>👤 Nome do contato</label>
+            <input type="text" id="telefone-nome" placeholder="Ex: João Silva">
+        </div>
         <div class="campo">
             <label>☎️ Número de telefone</label>
             <input type="tel" id="telefone-numero" placeholder="Ex: +55 47 99999-9999">
         </div>
         <button class="btn-gerar telefone" onclick="gerarTelefone()">Gerar QR Code</button>
         <div class="qr-wrapper"><div id="qrcode-telefone"></div></div>
-        <div class="info">☎️ <span id="infoTelefone">Nenhum QR Code gerado</span></div>
+        <div class="info">👤 <span id="infoTelefone">Nenhum QR Code gerado</span></div>
     </div>
 
     <!-- ===== SMS ===== -->
@@ -606,14 +607,12 @@
         document.getElementById('modalOverlay').classList.remove('ativo');
     }
 
-    // Fechar modal clicando fora
     document.getElementById('modalOverlay').addEventListener('click', function(e) {
         if (e.target === this) {
             fecharModal();
         }
     });
 
-    // Fechar modal com ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             fecharModal();
@@ -731,7 +730,7 @@
         qr.appendChild(canvasExibicao);
     }
     
-    // ===== FUNÇÕES GERADORAS (SEM MODAIS DE SUCESSO) =====
+    // ===== FUNÇÕES GERADORAS =====
     
     function gerarSite() {
         let url = document.getElementById('linkInput').value.trim();
@@ -817,16 +816,26 @@
         document.getElementById('infoEmail').textContent = txt;
     }
 
+    // ===== TELEFONE AGORA GERA VCARD (CONTATO) =====
     function gerarTelefone() {
+        const nome = document.getElementById('telefone-nome').value.trim();
         const numero = document.getElementById('telefone-numero').value.trim();
-        if (!numero) { 
-            mostrarModal('⚠️', 'Campo Vazio', 'Digite um número de telefone.', 'warning');
-            return; 
+
+        if (!nome) {
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite o nome do contato.', 'warning');
+            return;
         }
 
-        const txt = `tel:${apenasDigitos(numero)}`;
+        if (!numero) {
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite o número de telefone.', 'warning');
+            return;
+        }
+
+        // Formato vCard para salvar nos contatos
+        const txt = `BEGIN:VCARD\nVERSION:3.0\nFN:${nome}\nTEL:${numero}\nEND:VCARD`;
+
         renderizarQR('qrcode-telefone', txt);
-        document.getElementById('infoTelefone').textContent = txt;
+        document.getElementById('infoTelefone').textContent = `${nome} · ${numero}`;
     }
 
     function gerarSms() {
@@ -871,7 +880,10 @@
             return; 
         }
 
-        let txt = `BEGIN:VCARD\nFN:${nome}\nTEL:${telefone}\nEND:VCARD`;
+        let txt = `BEGIN:VCARD\nVERSION:3.0\nFN:${nome}\nTEL:${telefone}`;
+        if (email) txt += `\nEMAIL:${email}`;
+        if (empresa) txt += `\nORG:${empresa}`;
+        txt += `\nEND:VCARD`;
 
         renderizarQR('qrcode-contato', txt);
         document.getElementById('infoContato').textContent = `${nome}${telefone ? ' · ' + telefone : ''}${email ? ' · ' + email : ''}`;
@@ -963,6 +975,7 @@
         document.getElementById('email-destino').value = '';
         document.getElementById('email-assunto').value = '';
         document.getElementById('email-mensagem').value = '';
+        document.getElementById('telefone-nome').value = '';
         document.getElementById('telefone-numero').value = '';
         document.getElementById('sms-numero').value = '';
         document.getElementById('sms-mensagem').value = '';
