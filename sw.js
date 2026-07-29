@@ -1,9 +1,9 @@
-// sw.js - Service Worker para offline
-// A CACHE_VERSION é atualizada automaticamente pelo GitHub Actions
-const CACHE_VERSION = '02.07.2026-0819';
-const CACHE_NAME = `qr-code-${CACHE_VERSION}`;
-const urlsToCache = [
-'/',
+// Service Worker 
+// Toda vez que trocar fotos/áudios, a versão será atualizada automaticamente pelo deploy.yml
+const CACHE_VERSION = '28.07.2026-1237';
+const CACHE_NAME = `qrcode-${CACHE_VERSION}`;
+const ASSETS = [
+
 '/index.html',
 '/manifest.json',
 '/qrcode.min.js',
