@@ -17,7 +17,7 @@ event.waitUntil(
 caches.open(CACHE_NAME)
 .then((cache) => {
 console.log('Cache aberto:', CACHE_NAME);
-return cache.addAll(STATIC_ASSETS);
+return cache.addAll(ASSETS);
 })
 .then(() => self.skipWaiting())
 );
