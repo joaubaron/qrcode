@@ -5,17 +5,8 @@ const urlsToCache = [
 '/index.html',
 '/manifest.json',
 '/qrcode.min.js',
-'/icons/icon-72x72.png',
-'/icons/icon-96x96.png',
-'/icons/icon-128x128.png',
-'/icons/icon-144x144.png',
-'/icons/icon-152x152.png',
-'/icons/icon-192x192.png',
-'/icons/icon-384x384.png',
-'/icons/icon-512x512.png',
-'/icons/favicon-32x32.png',
-'/icons/favicon-16x16.png',
-'/icons/apple-touch-icon.png'
+'/icons/icone192.png',
+'/icons/icone512.png'
 ];
 
 // Instalação do Service Worker
@@ -73,14 +64,13 @@ return response;
 const responseToCache = response.clone();
 caches.open(CACHE_NAME)
 .then((cache) => {
-cache.put(event.request, responseToCache);
+    cache.put(event.request, responseToCache);
 });
 
 return response;
 })
 .catch(() => {
 // Fallback para quando offline
-// Retorna uma página de erro ou conteúdo offline
 return new Response('Offline - Conteúdo não disponível', {
 status: 503,
 statusText: 'Service Unavailable'
@@ -94,8 +84,8 @@ statusText: 'Service Unavailable'
 self.addEventListener('push', (event) => {
 const options = {
 body: event.data ? event.data.text() : 'Novo conteúdo disponível!',
-icon: '/icons/icon-192x192.png',
-badge: '/icons/favicon-32x32.png',
+icon: '/icons/icone192.png',
+badge: '/icons/icone192.png',
 vibrate: [100, 50, 100],
 data: {
 dateOfArrival: Date.now(),
