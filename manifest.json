@@ -2,7 +2,7 @@
 "name": "Gerador de QR Code",
 "short_name": "QR Code",
 "description": "Gerador de QR Code para vários tipos: Site, Wi-Fi, Texto, E-mail, Evento, SMS, WhatsApp, Contato e Local",
-"start_url": "/",
+"start_url": "index.html",
 "display": "standalone",
 "orientation": "portrait",
 "theme_color": "#1a2a6c",
