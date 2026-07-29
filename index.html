@@ -29,7 +29,7 @@
             border-radius: 25px;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 450px;
+            max-width: 460px;
             text-align: center;
         }
 
@@ -46,7 +46,8 @@
         }
 
         .tabs {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 6px;
             margin-bottom: 16px;
             background: #f0f2f5;
@@ -55,11 +56,10 @@
         }
 
         .tab-btn {
-            flex: 1;
-            padding: 8px 10px;
+            padding: 8px 4px;
             border: none;
             border-radius: 10px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             background: transparent;
@@ -67,6 +67,9 @@
             transition: all 0.3s ease;
             width: auto;
             margin-top: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .tab-btn.ativo {
@@ -101,7 +104,8 @@
         }
 
         .campo input,
-        .campo select {
+        .campo select,
+        .campo textarea {
             width: 100%;
             padding: 10px 14px;
             border: 2px solid #e0e0e0;
@@ -111,10 +115,17 @@
             transition: border-color 0.3s ease, background 0.3s ease;
             background: white;
             appearance: auto;
+            font-family: inherit;
+        }
+
+        .campo textarea {
+            resize: vertical;
+            min-height: 60px;
         }
 
         .campo input:focus,
-        .campo select:focus {
+        .campo select:focus,
+        .campo textarea:focus {
             border-color: #1a2a6c;
             box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.15);
         }
@@ -164,6 +175,13 @@
 
         .btn-gerar.site { background: #667eea; }
         .btn-gerar.wifi { background: #1a2a6c; }
+        .btn-gerar.texto { background: #6c757d; }
+        .btn-gerar.email { background: #d64545; }
+        .btn-gerar.telefone { background: #20c997; }
+        .btn-gerar.sms { background: #17a2b8; }
+        .btn-gerar.whatsapp { background: #25d366; }
+        .btn-gerar.contato { background: #6f42c1; }
+        .btn-gerar.local { background: #fd7e14; }
 
         .qr-wrapper {
             background: white;
@@ -177,7 +195,7 @@
             border: 1px solid #eee;
         }
 
-        #qrcode-site, #qrcode-wifi {
+        .qr-wrapper > div {
             background: white;
             padding: 8px;
             border-radius: 4px;
@@ -186,7 +204,7 @@
             justify-content: center;
         }
 
-        #qrcode-site canvas, #qrcode-wifi canvas {
+        .qr-wrapper canvas {
             display: block;
             background: white;
         }
@@ -256,7 +274,7 @@
         @media (max-width: 480px) {
             .container { padding: 20px 16px; }
             .linha-dupla { flex-direction: column; gap: 0; }
-            .tabs { flex-direction: column; gap: 4px; }
+            .tab-btn { font-size: 11px; padding: 8px 2px; }
         }
     </style>
 </head>
@@ -264,18 +282,25 @@
 
 <div class="container">
     <h1>📱 Gerador de QR Code</h1>
-    <p class="subtitle">Site ou Wi-Fi</p>
+    <p class="subtitle">Vários tipos em um só lugar</p>
 
     <div class="tabs">
         <button class="tab-btn ativo" data-tab="tab-site" onclick="trocarAba(this, 'tab-site')">🌐 Site</button>
         <button class="tab-btn" data-tab="tab-wifi" onclick="trocarAba(this, 'tab-wifi')">📶 Wi-Fi</button>
+        <button class="tab-btn" data-tab="tab-texto" onclick="trocarAba(this, 'tab-texto')">📝 Texto</button>
+        <button class="tab-btn" data-tab="tab-email" onclick="trocarAba(this, 'tab-email')">📧 E-mail</button>
+        <button class="tab-btn" data-tab="tab-telefone" onclick="trocarAba(this, 'tab-telefone')">☎️ Telefone</button>
+        <button class="tab-btn" data-tab="tab-sms" onclick="trocarAba(this, 'tab-sms')">💬 SMS</button>
+        <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">🟢 WhatsApp</button>
+        <button class="tab-btn" data-tab="tab-contato" onclick="trocarAba(this, 'tab-contato')">👤 Contato</button>
+        <button class="tab-btn" data-tab="tab-local" onclick="trocarAba(this, 'tab-local')">📍 Local</button>
     </div>
 
     <!-- ===== SITE ===== -->
     <div id="tab-site" class="tab-content ativo">
         <div class="campo">
             <label>🔗 Link</label>
-            <input type="text" id="linkInput" placeholder="ex: furb.br" value="www.furb.br/pt" oninput="validarUrl()">
+            <input type="text" id="linkInput" placeholder="ex: www.globo.com" value="https://www.globo.com/" oninput="validarUrl()">
             <div class="erro-msg" id="urlErro">URL inválida. Inclua http:// ou https://</div>
         </div>
         <button class="btn-gerar site" onclick="gerarSite()">Gerar QR Code</button>
@@ -314,6 +339,111 @@
         <div class="info">📶 <span id="infoWifi">Nenhum QR Code gerado</span></div>
     </div>
 
+    <!-- ===== TEXTO ===== -->
+    <div id="tab-texto" class="tab-content">
+        <div class="campo">
+            <label>📝 Texto livre</label>
+            <textarea id="texto-conteudo" placeholder="Digite qualquer texto..."></textarea>
+        </div>
+        <button class="btn-gerar texto" onclick="gerarTexto()">Gerar QR Code</button>
+        <div class="qr-wrapper"><div id="qrcode-texto"></div></div>
+        <div class="info">📝 <span id="infoTexto">Nenhum QR Code gerado</span></div>
+    </div>
+
+    <!-- ===== E-MAIL ===== -->
+    <div id="tab-email" class="tab-content">
+        <div class="campo">
+            <label>📧 Destinatário</label>
+            <input type="email" id="email-destino" placeholder="nome@exemplo.com">
+        </div>
+        <div class="campo">
+            <label>✏️ Assunto (opcional)</label>
+            <input type="text" id="email-assunto" placeholder="Assunto do e-mail">
+        </div>
+        <div class="campo">
+            <label>💬 Mensagem (opcional)</label>
+            <textarea id="email-mensagem" placeholder="Corpo da mensagem..."></textarea>
+        </div>
+        <button class="btn-gerar email" onclick="gerarEmail()">Gerar QR Code</button>
+        <div class="qr-wrapper"><div id="qrcode-email"></div></div>
+        <div class="info">📧 <span id="infoEmail">Nenhum QR Code gerado</span></div>
+    </div>
+
+    <!-- ===== TELEFONE ===== -->
+    <div id="tab-telefone" class="tab-content">
+        <div class="campo">
+            <label>☎️ Número de telefone</label>
+            <input type="tel" id="telefone-numero" placeholder="Ex: +55 47 99999-9999">
+        </div>
+        <button class="btn-gerar telefone" onclick="gerarTelefone()">Gerar QR Code</button>
+        <div class="qr-wrapper"><div id="qrcode-telefone"></div></div>
+        <div class="info">☎️ <span id="infoTelefone">Nenhum QR Code gerado</span></div>
+    </div>
+
+    <!-- ===== SMS ===== -->
+    <div id="tab-sms" class="tab-content">
+        <div class="campo">
+            <label>💬 Número de telefone</label>
+            <input type="tel" id="sms-numero" placeholder="Ex: +55 47 99999-9999">
+        </div>
+        <div class="campo">
+            <label>✏️ Mensagem (opcional)</label>
+            <textarea id="sms-mensagem" placeholder="Texto do SMS..."></textarea>
+        </div>
+        <button class="btn-gerar sms" onclick="gerarSms()">Gerar QR Code</button>
+        <div class="qr-wrapper"><div id="qrcode-sms"></div></div>
+        <div class="info">💬 <span id="infoSms">Nenhum QR Code gerado</span></div>
+    </div>
+
+    <!-- ===== WHATSAPP ===== -->
+    <div id="tab-whatsapp" class="tab-content">
+        <div class="campo">
+            <label>🟢 Número (com DDI e DDD)</label>
+            <input type="tel" id="whats-numero" placeholder="Ex: 55 47 99999-9999">
+        </div>
+        <div class="campo">
+            <label>✏️ Mensagem (opcional)</label>
+            <textarea id="whats-mensagem" placeholder="Mensagem pré-preenchida..."></textarea>
+        </div>
+        <button class="btn-gerar whatsapp" onclick="gerarWhatsapp()">Gerar QR Code</button>
+        <div class="qr-wrapper"><div id="qrcode-whatsapp"></div></div>
+        <div class="info">🟢 <span id="infoWhatsapp">Nenhum QR Code gerado</span></div>
+    </div>
+
+    <!-- ===== CONTATO (vCard) ===== -->
+    <div id="tab-contato" class="tab-content">
+        <div class="campo">
+            <label>👤 Nome completo</label>
+            <input type="text" id="contato-nome" placeholder="Ex: Augusto Baron">
+        </div>
+        <div class="campo">
+            <label>☎️ Telefone</label>
+            <input type="tel" id="contato-telefone" placeholder="Ex: +55 47 99999-9999">
+        </div>
+        <div class="campo">
+            <label>📧 E-mail (opcional)</label>
+            <input type="email" id="contato-email" placeholder="nome@exemplo.com">
+        </div>
+        <div class="campo">
+            <label>🏢 Empresa (opcional)</label>
+            <input type="text" id="contato-empresa" placeholder="Ex: FURB">
+        </div>
+        <button class="btn-gerar contato" onclick="gerarContato()">Gerar QR Code</button>
+        <div class="qr-wrapper"><div id="qrcode-contato"></div></div>
+        <div class="info">👤 <span id="infoContato">Nenhum QR Code gerado</span></div>
+    </div>
+
+    <!-- ===== LOCALIZAÇÃO ===== -->
+    <div id="tab-local" class="tab-content">
+        <div class="campo">
+            <label>📍 Endereço ou local</label>
+            <input type="text" id="local-endereco" placeholder="Ex: Rua Antônio da Veiga, 140, Blumenau">
+        </div>
+        <button class="btn-gerar local" onclick="gerarLocalizacao()">Gerar QR Code</button>
+        <div class="qr-wrapper"><div id="qrcode-local"></div></div>
+        <div class="info">📍 <span id="infoLocal">Nenhum QR Code gerado</span></div>
+    </div>
+
     <div class="actions">
         <button class="btn-download" onclick="baixarPNG()">⬇️ Baixar PNG</button>
         <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
@@ -325,6 +455,20 @@
 <script>
     let abaAtual = 'tab-site';
     let senhaAntiga = '12345678';
+
+    // Configuração de cada aba: onde fica o QR, onde fica o texto de info
+    // e qual o nome de arquivo sugerido ao baixar o PNG.
+    const ABAS = {
+        'tab-site':      { qrId: 'qrcode-site',      infoId: 'infoSite',      arquivo: 'qrcode-site.png' },
+        'tab-wifi':      { qrId: 'qrcode-wifi',      infoId: 'infoWifi',      arquivo: 'qrcode-wifi.png' },
+        'tab-texto':     { qrId: 'qrcode-texto',     infoId: 'infoTexto',     arquivo: 'qrcode-texto.png' },
+        'tab-email':     { qrId: 'qrcode-email',     infoId: 'infoEmail',     arquivo: 'qrcode-email.png' },
+        'tab-telefone':  { qrId: 'qrcode-telefone',  infoId: 'infoTelefone',  arquivo: 'qrcode-telefone.png' },
+        'tab-sms':       { qrId: 'qrcode-sms',       infoId: 'infoSms',       arquivo: 'qrcode-sms.png' },
+        'tab-whatsapp':  { qrId: 'qrcode-whatsapp',  infoId: 'infoWhatsapp',  arquivo: 'qrcode-whatsapp.png' },
+        'tab-contato':   { qrId: 'qrcode-contato',   infoId: 'infoContato',   arquivo: 'qrcode-contato.png' },
+        'tab-local':     { qrId: 'qrcode-local',     infoId: 'infoLocal',     arquivo: 'qrcode-local.png' }
+    };
 
     function trocarAba(botao, id) {
         abaAtual = id;
@@ -378,6 +522,35 @@
                     .replace(/&/g, '\\&');
     }
 
+    // Escapa campos de vCard (backslash, vírgula, ponto-e-vírgula e quebras de linha)
+    function escaparVCard(texto) {
+        return texto.replace(/\\/g, '\\\\')
+                    .replace(/;/g, '\\;')
+                    .replace(/,/g, '\\,')
+                    .replace(/\n/g, '\\n');
+    }
+
+    // Mantém apenas dígitos e o "+" inicial (para telefone, SMS, WhatsApp)
+    function apenasDigitos(texto) {
+        let limpo = texto.trim().replace(/[^\d+]/g, '');
+        const comMais = limpo.startsWith('+');
+        limpo = limpo.replace(/\+/g, '');
+        return comMais ? '+' + limpo : limpo;
+    }
+
+    function renderizarQR(divId, texto) {
+        const qr = document.getElementById(divId);
+        qr.innerHTML = '';
+        new QRCode(qr, {
+            text: texto,
+            width: 200,
+            height: 200,
+            colorDark: "#000",
+            colorLight: "#fff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+
     function gerarSite() {
         let url = document.getElementById('linkInput').value.trim();
         if (!url) { alert('Digite um link.'); return; }
@@ -392,16 +565,7 @@
             document.getElementById('linkInput').value = url;
         }
 
-        const qr = document.getElementById('qrcode-site');
-        qr.innerHTML = '';
-        new QRCode(qr, {
-            text: url,
-            width: 200,
-            height: 200,
-            colorDark: "#000",
-            colorLight: "#fff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
+        renderizarQR('qrcode-site', url);
         document.getElementById('infoSite').textContent = url;
     }
 
@@ -427,16 +591,7 @@
             txt += ';';
         }
 
-        const qr = document.getElementById('qrcode-wifi');
-        qr.innerHTML = '';
-        new QRCode(qr, {
-            text: txt,
-            width: 200,
-            height: 200,
-            colorDark: "#000",
-            colorLight: "#fff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
+        renderizarQR('qrcode-wifi', txt);
         document.getElementById('infoWifi').textContent = txt;
 
         // Preview legível - TUDO NA MESMA LINHA
@@ -447,10 +602,101 @@
         preview.style.display = 'block';
     }
 
+    function gerarTexto() {
+        const texto = document.getElementById('texto-conteudo').value.trim();
+        if (!texto) { alert('Digite um texto.'); return; }
+
+        renderizarQR('qrcode-texto', texto);
+        document.getElementById('infoTexto').textContent = texto;
+    }
+
+    function gerarEmail() {
+        const destino = document.getElementById('email-destino').value.trim();
+        const assunto = document.getElementById('email-assunto').value.trim();
+        const mensagem = document.getElementById('email-mensagem').value.trim();
+
+        if (!destino) { alert('Digite o e-mail do destinatário.'); return; }
+
+        let txt = `mailto:${destino}`;
+        const params = [];
+        if (assunto) params.push('subject=' + encodeURIComponent(assunto));
+        if (mensagem) params.push('body=' + encodeURIComponent(mensagem));
+        if (params.length) txt += '?' + params.join('&');
+
+        renderizarQR('qrcode-email', txt);
+        document.getElementById('infoEmail').textContent = txt;
+    }
+
+    function gerarTelefone() {
+        const numero = document.getElementById('telefone-numero').value.trim();
+        if (!numero) { alert('Digite um número de telefone.'); return; }
+
+        const txt = `tel:${apenasDigitos(numero)}`;
+        renderizarQR('qrcode-telefone', txt);
+        document.getElementById('infoTelefone').textContent = txt;
+    }
+
+    function gerarSms() {
+        const numero = document.getElementById('sms-numero').value.trim();
+        const mensagem = document.getElementById('sms-mensagem').value.trim();
+        if (!numero) { alert('Digite um número de telefone.'); return; }
+
+        let txt = `sms:${apenasDigitos(numero)}`;
+        if (mensagem) txt += `?body=${encodeURIComponent(mensagem)}`;
+
+        renderizarQR('qrcode-sms', txt);
+        document.getElementById('infoSms').textContent = txt;
+    }
+
+    function gerarWhatsapp() {
+        const numero = document.getElementById('whats-numero').value.trim();
+        const mensagem = document.getElementById('whats-mensagem').value.trim();
+        if (!numero) { alert('Digite um número de telefone.'); return; }
+
+        const numeroLimpo = apenasDigitos(numero).replace('+', '');
+        let txt = `https://wa.me/${numeroLimpo}`;
+        if (mensagem) txt += `?text=${encodeURIComponent(mensagem)}`;
+
+        renderizarQR('qrcode-whatsapp', txt);
+        document.getElementById('infoWhatsapp').textContent = txt;
+    }
+
+    function gerarContato() {
+        const nome = document.getElementById('contato-nome').value.trim();
+        const telefone = document.getElementById('contato-telefone').value.trim();
+        const email = document.getElementById('contato-email').value.trim();
+        const empresa = document.getElementById('contato-empresa').value.trim();
+
+        if (!nome) { alert('Digite o nome do contato.'); return; }
+
+        const partes = nome.split(' ').filter(Boolean);
+        const sobrenome = partes.length > 1 ? partes.pop() : '';
+        const restante = partes.join(' ');
+
+        let txt = 'BEGIN:VCARD\nVERSION:3.0\n';
+        txt += `N:${escaparVCard(sobrenome)};${escaparVCard(restante)};;;\n`;
+        txt += `FN:${escaparVCard(nome)}\n`;
+        if (empresa) txt += `ORG:${escaparVCard(empresa)}\n`;
+        if (telefone) txt += `TEL;TYPE=CELL:${apenasDigitos(telefone)}\n`;
+        if (email) txt += `EMAIL:${escaparVCard(email)}\n`;
+        txt += 'END:VCARD';
+
+        renderizarQR('qrcode-contato', txt);
+        document.getElementById('infoContato').textContent = `${nome}${telefone ? ' · ' + telefone : ''}${email ? ' · ' + email : ''}`;
+    }
+
+    function gerarLocalizacao() {
+        const endereco = document.getElementById('local-endereco').value.trim();
+        if (!endereco) { alert('Digite um endereço ou local.'); return; }
+
+        const txt = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
+        renderizarQR('qrcode-local', txt);
+        document.getElementById('infoLocal').textContent = endereco;
+    }
+
     function baixarPNG() {
-        const div = abaAtual === 'tab-site'
-            ? document.getElementById('qrcode-site')
-            : document.getElementById('qrcode-wifi');
+        const config = ABAS[abaAtual];
+        const div = document.getElementById(config.qrId);
         const canvas = div.querySelector('canvas');
         if (!canvas) {
             alert('Gere um QR Code primeiro!');
@@ -472,25 +718,71 @@
         ctx.drawImage(canvas, borda, borda, qrTamanho, qrTamanho);
 
         const link = document.createElement('a');
-        link.download = abaAtual === 'tab-site' ? 'qrcode-site.png' : 'qrcode-wifi.png';
+        link.download = config.arquivo;
         link.href = novo.toDataURL('image/png');
         link.click();
     }
 
     function limparTudo() {
-        document.getElementById('qrcode-site').innerHTML = '';
-        document.getElementById('qrcode-wifi').innerHTML = '';
-        document.getElementById('infoSite').textContent = 'Nenhum QR Code gerado';
-        document.getElementById('infoWifi').textContent = 'Nenhum QR Code gerado';
+        // Limpa QR codes e textos de info de todas as abas
+        Object.values(ABAS).forEach(cfg => {
+            document.getElementById(cfg.qrId).innerHTML = '';
+            document.getElementById(cfg.infoId).textContent = 'Nenhum QR Code gerado';
+        });
+
+        // Site
         document.getElementById('linkInput').value = '';
+        document.getElementById('urlErro').classList.remove('visivel');
+        document.getElementById('linkInput').classList.remove('erro');
+
+        // Wi-Fi
         document.getElementById('wifi-ssid').value = '';
         document.getElementById('wifi-senha').value = '';
         document.getElementById('wifi-tipo').value = 'WPA';
         document.getElementById('wifiPreview').style.display = 'none';
         toggleSenhaWifi();
-        document.getElementById('urlErro').classList.remove('visivel');
-        document.getElementById('linkInput').classList.remove('erro');
+
+        // Texto
+        document.getElementById('texto-conteudo').value = '';
+
+        // E-mail
+        document.getElementById('email-destino').value = '';
+        document.getElementById('email-assunto').value = '';
+        document.getElementById('email-mensagem').value = '';
+
+        // Telefone
+        document.getElementById('telefone-numero').value = '';
+
+        // SMS
+        document.getElementById('sms-numero').value = '';
+        document.getElementById('sms-mensagem').value = '';
+
+        // WhatsApp
+        document.getElementById('whats-numero').value = '';
+        document.getElementById('whats-mensagem').value = '';
+
+        // Contato
+        document.getElementById('contato-nome').value = '';
+        document.getElementById('contato-telefone').value = '';
+        document.getElementById('contato-email').value = '';
+        document.getElementById('contato-empresa').value = '';
+
+        // Localização
+        document.getElementById('local-endereco').value = '';
     }
+
+    // Mapeia cada aba à sua função geradora, para o atalho "Enter"
+    const GERADORES = {
+        'tab-site': gerarSite,
+        'tab-wifi': gerarWifi,
+        'tab-texto': gerarTexto,
+        'tab-email': gerarEmail,
+        'tab-telefone': gerarTelefone,
+        'tab-sms': gerarSms,
+        'tab-whatsapp': gerarWhatsapp,
+        'tab-contato': gerarContato,
+        'tab-local': gerarLocalizacao
+    };
 
     window.onload = function() {
         toggleSenhaWifi();
@@ -499,9 +791,16 @@
             if (e.key === 'Enter') gerarSite();
         });
 
-        document.querySelectorAll('#tab-wifi input, #tab-wifi select').forEach(el => {
-            el.addEventListener('keypress', e => {
-                if (e.key === 'Enter') gerarWifi();
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            const gerar = GERADORES[tab.id];
+            if (!gerar) return;
+            tab.querySelectorAll('input, select').forEach(el => {
+                el.addEventListener('keypress', e => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        gerar();
+                    }
+                });
             });
         });
     };
