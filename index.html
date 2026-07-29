@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de QR Code</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        if (typeof QRCode === 'undefined') {
+            document.write('<script src="qrcode.min.js"><\/script>');
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px 25px;
+            border-radius: 25px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            background: #f0f2f5;
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            color: #888;
+            transition: all 0.3s ease;
+            width: auto;
+            margin-top: 0;
+        }
+
+        .tab-btn.ativo {
+            background: white;
+            color: #1a2a6c;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.ativo { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .campo {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .campo label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 3px;
+        }
+
+        .campo input,
+        .campo select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease, background 0.3s ease;
+            background: white;
+            appearance: auto;
+        }
+
+        .campo input:focus,
+        .campo select:focus {
+            border-color: #1a2a6c;
+            box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.15);
+        }
+
+        .campo input.erro {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+        }
+
+        .campo input:disabled {
+            background: #f0f0f0;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+
+        .campo .erro-msg {
+            font-size: 11px;
+            color: #dc3545;
+            margin-top: 3px;
+            display: none;
+        }
+
+        .campo .erro-msg.visivel { display: block; }
+
+        .linha-dupla {
+            display: flex;
+            gap: 10px;
+        }
+
+        .linha-dupla .campo { flex: 1; }
+
+        .btn-gerar {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #1a2a6c;
+            color: white;
+            transition: transform 0.2s ease;
+            margin-top: 4px;
+        }
+
+        .btn-gerar:hover { transform: translateY(-2px); }
+
+        .btn-gerar.site { background: #667eea; }
+        .btn-gerar.wifi { background: #1a2a6c; }
+
+        .qr-wrapper {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 14px 0;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #eee;
+        }
+
+        #qrcode-site, #qrcode-wifi {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qrcode-site canvas, #qrcode-wifi canvas {
+            display: block;
+            background: white;
+        }
+
+        .info {
+            font-size: 11px;
+            color: #999;
+            word-break: break-all;
+            background: #f5f5f5;
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            text-align: left;
+        }
+
+        .info span { color: #1a2a6c; font-weight: 500; }
+
+        /* PREVIEW DO WIFI - TUDO NA MESMA LINHA */
+        .info-wifi-legivel {
+            font-size: 12px;
+            color: #555;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            text-align: left;
+            border-left: 3px solid #1a2a6c;
+        }
+
+        .info-wifi-legivel strong { color: #1a2a6c; }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .actions button:hover { transform: translateY(-2px); }
+
+        .btn-download {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-limpar {
+            background: #e8ecf1;
+            color: #555;
+        }
+
+        .footer {
+            margin-top: 12px;
+            font-size: 11px;
+            color: #bbb;
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 20px 16px; }
+            .linha-dupla { flex-direction: column; gap: 0; }
+            .tabs { flex-direction: column; gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📱 Gerador de QR Code</h1>
+    <p class="subtitle">Site ou Wi-Fi</p>
+
+    <div class="tabs">
+        <button class="tab-btn ativo" data-tab="tab-site" onclick="trocarAba(this, 'tab-site')">🌐 Site</button>
+        <button class="tab-btn" data-tab="tab-wifi" onclick="trocarAba(this, 'tab-wifi')">📶 Wi-Fi</button>
+    </div>
+
+    <!-- ===== SITE ===== -->
+    <div id="tab-site" class="tab-content ativo">
+        <div class="campo">
+            <label>🔗 Link</label>
+            <input type="text" id="linkInput" placeholder="ex: furb.br" value="www.furb.br/pt" oninput="validarUrl()">
+            <div class="erro-msg" id="urlErro">URL inválida. Inclua http:// ou https://</div>
+        </div>
+        <button class="btn-gerar site" onclick="gerarSite()">Gerar QR Code</button>
+        <div class="qr-wrapper"><div id="qrcode-site"></div></div>
+        <div class="info">🔗 <span id="infoSite">Nenhum QR Code gerado</span></div>
+    </div>
+
+    <!-- ===== WI-FI ===== -->
+    <div id="tab-wifi" class="tab-content">
+        <div class="campo">
+            <label>📡 Nome da rede (SSID)</label>
+            <input type="text" id="wifi-ssid" placeholder="Ex: MinhaWiFi" value="MinhaWiFi">
+        </div>
+        <div class="linha-dupla">
+            <div class="campo">
+                <label>🔑 Senha</label>
+                <input type="text" id="wifi-senha" placeholder="Senha" value="12345678">
+            </div>
+            <div class="campo">
+                <label>🔒 Segurança</label>
+                <select id="wifi-tipo" onchange="toggleSenhaWifi()">
+                    <option value="WPA">WPA / WPA2</option>
+                    <option value="WEP">WEP</option>
+                    <option value="nopass">Aberta (sem senha)</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn-gerar wifi" onclick="gerarWifi()">Gerar QR Code</button>
+
+        <!-- PREVIEW DO WIFI - TUDO NA MESMA LINHA -->
+        <div class="info-wifi-legivel" id="wifiPreview" style="display:none;">
+            📶 <span id="wifiPreviewSsid"></span> · 🔒 <span id="wifiPreviewTipo"></span> · 🔑 <span id="wifiPreviewSenha"></span>
+        </div>
+
+        <div class="qr-wrapper"><div id="qrcode-wifi"></div></div>
+        <div class="info">📶 <span id="infoWifi">Nenhum QR Code gerado</span></div>
+    </div>
+
+    <div class="actions">
+        <button class="btn-download" onclick="baixarPNG()">⬇️ Baixar PNG</button>
+        <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
+    </div>
+
+    <div class="footer">QR Code estático — nunca expira</div>
+</div>
+
+<script>
+    let abaAtual = 'tab-site';
+    let senhaAntiga = '12345678';
+
+    function trocarAba(botao, id) {
+        abaAtual = id;
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ativo'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('ativo'));
+        document.getElementById(id).classList.add('ativo');
+        botao.classList.add('ativo');
+    }
+
+    function validarUrl() {
+        const input = document.getElementById('linkInput');
+        const erro = document.getElementById('urlErro');
+        const url = input.value.trim();
+
+        if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+            erro.classList.add('visivel');
+            input.classList.add('erro');
+            return false;
+        } else {
+            erro.classList.remove('visivel');
+            input.classList.remove('erro');
+            return true;
+        }
+    }
+
+    function toggleSenhaWifi() {
+        const tipo = document.getElementById('wifi-tipo').value;
+        const senhaInput = document.getElementById('wifi-senha');
+
+        if (tipo === 'nopass') {
+            senhaAntiga = senhaInput.value;
+            senhaInput.disabled = true;
+            senhaInput.value = '';
+            senhaInput.placeholder = 'Sem senha';
+        } else {
+            senhaInput.disabled = false;
+            senhaInput.placeholder = 'Senha';
+            if (!senhaInput.value && senhaAntiga) {
+                senhaInput.value = senhaAntiga;
+            }
+        }
+    }
+
+    function escaparWifi(texto) {
+        return texto.replace(/\\/g, '\\\\')
+                    .replace(/;/g, '\\;')
+                    .replace(/,/g, '\\,')
+                    .replace(/:/g, '\\:')
+                    .replace(/"/g, '\\"')
+                    .replace(/'/g, "\\'")
+                    .replace(/&/g, '\\&');
+    }
+
+    function gerarSite() {
+        let url = document.getElementById('linkInput').value.trim();
+        if (!url) { alert('Digite um link.'); return; }
+
+        if (url.toLowerCase().startsWith('javascript:')) {
+            alert('URL inválida.');
+            return;
+        }
+
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+            document.getElementById('linkInput').value = url;
+        }
+
+        const qr = document.getElementById('qrcode-site');
+        qr.innerHTML = '';
+        new QRCode(qr, {
+            text: url,
+            width: 200,
+            height: 200,
+            colorDark: "#000",
+            colorLight: "#fff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        document.getElementById('infoSite').textContent = url;
+    }
+
+    function gerarWifi() {
+        const ssid = document.getElementById('wifi-ssid').value.trim();
+        let senha = document.getElementById('wifi-senha').value.trim();
+        const tipo = document.getElementById('wifi-tipo').value;
+
+        if (!ssid) {
+            alert('Digite o nome da rede (SSID).');
+            return;
+        }
+
+        const ssidEscapado = escaparWifi(ssid);
+        const senhaEscapada = escaparWifi(senha);
+
+        let txt;
+        if (tipo === 'nopass') {
+            txt = `WIFI:T:nopass;S:${ssidEscapado};;`;
+        } else {
+            txt = `WIFI:T:${tipo};S:${ssidEscapado};`;
+            if (senhaEscapada) txt += `P:${senhaEscapada};`;
+            txt += ';';
+        }
+
+        const qr = document.getElementById('qrcode-wifi');
+        qr.innerHTML = '';
+        new QRCode(qr, {
+            text: txt,
+            width: 200,
+            height: 200,
+            colorDark: "#000",
+            colorLight: "#fff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        document.getElementById('infoWifi').textContent = txt;
+
+        // Preview legível - TUDO NA MESMA LINHA
+        const preview = document.getElementById('wifiPreview');
+        document.getElementById('wifiPreviewSsid').textContent = ssid;
+        document.getElementById('wifiPreviewTipo').textContent = tipo === 'nopass' ? 'Aberta' : tipo;
+        document.getElementById('wifiPreviewSenha').textContent = tipo === 'nopass' ? '—' : (senha || '(vazia)');
+        preview.style.display = 'block';
+    }
+
+    function baixarPNG() {
+        const div = abaAtual === 'tab-site'
+            ? document.getElementById('qrcode-site')
+            : document.getElementById('qrcode-wifi');
+        const canvas = div.querySelector('canvas');
+        if (!canvas) {
+            alert('Gere um QR Code primeiro!');
+            return;
+        }
+
+        const tamanho = 1024;
+        const borda = 80;
+        const qrTamanho = tamanho - (borda * 2);
+
+        const novo = document.createElement('canvas');
+        novo.width = tamanho;
+        novo.height = tamanho;
+        const ctx = novo.getContext('2d');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, tamanho, tamanho);
+
+        ctx.drawImage(canvas, borda, borda, qrTamanho, qrTamanho);
+
+        const link = document.createElement('a');
+        link.download = abaAtual === 'tab-site' ? 'qrcode-site.png' : 'qrcode-wifi.png';
+        link.href = novo.toDataURL('image/png');
+        link.click();
+    }
+
+    function limparTudo() {
+        document.getElementById('qrcode-site').innerHTML = '';
+        document.getElementById('qrcode-wifi').innerHTML = '';
+        document.getElementById('infoSite').textContent = 'Nenhum QR Code gerado';
+        document.getElementById('infoWifi').textContent = 'Nenhum QR Code gerado';
+        document.getElementById('linkInput').value = '';
+        document.getElementById('wifi-ssid').value = '';
+        document.getElementById('wifi-senha').value = '';
+        document.getElementById('wifi-tipo').value = 'WPA';
+        document.getElementById('wifiPreview').style.display = 'none';
+        toggleSenhaWifi();
+        document.getElementById('urlErro').classList.remove('visivel');
+        document.getElementById('linkInput').classList.remove('erro');
+    }
+
+    window.onload = function() {
+        toggleSenhaWifi();
+
+        document.getElementById('linkInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') gerarSite();
+        });
+
+        document.querySelectorAll('#tab-wifi input, #tab-wifi select').forEach(el => {
+            el.addEventListener('keypress', e => {
+                if (e.key === 'Enter') gerarWifi();
+            });
+        });
+    };
+</script>
+
+</body>
+</html>
