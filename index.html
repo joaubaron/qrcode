@@ -5,14 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Gerador de QR Code</title>
 
-  <!-- PWA Meta Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffffff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="QR Code">
 
-  <!-- Ícones para PWA -->
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -26,7 +24,7 @@
   </script>
 
   <style>
-    /* Reset e base - SEM FUNDO */
+    /* Reset - SEM CONTAINER, SEM CAIXA */
     * {
       margin: 0;
       padding: 0;
@@ -35,25 +33,12 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: transparent;
-      /* FUNDO TOTALMENTE REMOVIDO */
+      background: #ffffff;
+      /* FUNDO BRANCO PURO */
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
-    }
-
-    /* A caixa ÚNICA que contém TUDO - sem fundo por trás */
-    .container {
-      background: white;
-      padding: 30px 25px;
-      border-radius: 25px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      width: 100%;
-      max-width: 460px;
-      text-align: center;
-      border: 1px solid #e5e7eb;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     h1 {
@@ -69,6 +54,7 @@
       margin-bottom: 16px;
     }
 
+    /* MENU DIRETO NO FUNDO BRANCO - SEM CAIXA */
     .tabs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -351,9 +337,6 @@
     }
 
     @media (max-width: 480px) {
-      .container {
-        padding: 20px 16px;
-      }
       .linha-dupla {
         flex-direction: column;
         gap: 0;
@@ -510,200 +493,198 @@
 </head>
 <body>
 
-  <!-- APENAS UMA CAIXA, SEM FUNDO EXTERNO -->
-  <div class="container">
-    <div class="offline-banner" id="offlineBanner">📶 Modo Offline - Funcionando normalmente</div>
+  <!-- SEM CONTAINER - TUDO DIRETO NO FUNDO BRANCO -->
+  <div class="offline-banner" id="offlineBanner">📶 Modo Offline - Funcionando normalmente</div>
 
-    <h1>📱 Gerador de QR Code</h1>
-    <p class="subtitle"></p>
+  <h1>📱 Gerador de QR Code</h1>
+  <p class="subtitle"></p>
 
-    <div class="tabs">
-      <button class="tab-btn ativo" data-tab="tab-site" onclick="trocarAba(this, 'tab-site')">🌐 Site</button>
-      <button class="tab-btn" data-tab="tab-wifi" onclick="trocarAba(this, 'tab-wifi')">📶 Wi-Fi</button>
-      <button class="tab-btn" data-tab="tab-texto" onclick="trocarAba(this, 'tab-texto')">📝 Texto</button>
-      <button class="tab-btn" data-tab="tab-email" onclick="trocarAba(this, 'tab-email')">📧 E-mail</button>
-      <button class="tab-btn" data-tab="tab-evento" onclick="trocarAba(this, 'tab-evento')">📅 Evento</button>
-      <button class="tab-btn" data-tab="tab-instagram" onclick="trocarAba(this, 'tab-instagram')">@ Instagram</button>
-      <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">🟢 WhatsApp</button>
-      <button class="tab-btn" data-tab="tab-contato" onclick="trocarAba(this, 'tab-contato')">👤 Contato</button>
-      <button class="tab-btn" data-tab="tab-local" onclick="trocarAba(this, 'tab-local')">📍 Local</button>
-    </div>
-
-    <!-- ===== SITE ===== -->
-    <div id="tab-site" class="tab-content ativo">
-      <div class="campo">
-        <label>🔗 Link</label>
-        <input type="text" id="linkInput" placeholder="ex: www.globo.com" value="https://www.globo.com" oninput="validarUrl()">
-        <div class="erro-msg" id="urlErro">URL inválida. Inclua http:// ou https://</div>
-      </div>
-      <button class="btn-gerar site" onclick="gerarSite()">Gerar QR Code</button>
-      <div class="qr-wrapper"><div id="qrcode-site"></div></div>
-      <div class="info">🔗 <span id="infoSite">Nenhum QR Code gerado</span></div>
-    </div>
-
-    <!-- ===== WI-FI ===== -->
-    <div id="tab-wifi" class="tab-content">
-      <div class="campo">
-        <label>📡 Nome da rede (SSID)</label>
-        <input type="text" id="wifi-ssid" placeholder="Ex: MinhaWiFi" value="MinhaWiFi">
-      </div>
-      <div class="linha-dupla">
-        <div class="campo">
-          <label>🔑 Senha</label>
-          <input type="text" id="wifi-senha" placeholder="Senha" value="12345678">
-        </div>
-        <div class="campo">
-          <label>🔒 Segurança</label>
-          <select id="wifi-tipo" onchange="toggleSenhaWifi()">
-            <option value="WPA">WPA / WPA2</option>
-            <option value="WEP">WEP</option>
-            <option value="nopass">Aberta (sem senha)</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn-gerar wifi" onclick="gerarWifi()">Gerar QR Code</button>
-
-      <div class="info-wifi-legivel" id="wifiPreview" style="display:none;">
-        📶 <span id="wifiPreviewSsid"></span> · 🔒 <span id="wifiPreviewTipo"></span> · 🔑 <span id="wifiPreviewSenha"></span>
-      </div>
-
-      <div class="qr-wrapper"><div id="qrcode-wifi"></div></div>
-      <div class="info">📶 <span id="infoWifi">Nenhum QR Code gerado</span></div>
-    </div>
-
-    <!-- ===== TEXTO ===== -->
-    <div id="tab-texto" class="tab-content">
-      <div class="campo">
-        <label>📝 Texto livre</label>
-        <textarea id="texto-conteudo" placeholder="Digite qualquer texto..."></textarea>
-      </div>
-      <button class="btn-gerar texto" onclick="gerarTexto()">Gerar QR Code</button>
-      <div class="qr-wrapper"><div id="qrcode-texto"></div></div>
-      <div class="info">📝 <span id="infoTexto">Nenhum QR Code gerado</span></div>
-    </div>
-
-    <!-- ===== E-MAIL ===== -->
-    <div id="tab-email" class="tab-content">
-      <div class="campo">
-        <label>📧 Destinatário</label>
-        <input type="email" id="email-destino" placeholder="nome@exemplo.com">
-      </div>
-      <div class="campo">
-        <label>✏️ Assunto (opcional)</label>
-        <input type="text" id="email-assunto" placeholder="Assunto do e-mail">
-      </div>
-      <div class="campo">
-        <label>💬 Mensagem (opcional)</label>
-        <textarea id="email-mensagem" placeholder="Corpo da mensagem..."></textarea>
-      </div>
-      <button class="btn-gerar email" onclick="gerarEmail()">Gerar QR Code</button>
-      <div class="qr-wrapper"><div id="qrcode-email"></div></div>
-      <div class="info">📧 <span id="infoEmail">Nenhum QR Code gerado</span></div>
-    </div>
-
-    <!-- ===== EVENTO/AGENDA ===== -->
-    <div id="tab-evento" class="tab-content">
-      <div class="campo">
-        <label>📝 Título do evento</label>
-        <input type="text" id="evento-titulo" placeholder="Ex: Reunião com equipe">
-      </div>
-      <div class="linha-dupla">
-        <div class="campo">
-          <label>📆 Data</label>
-          <input type="date" id="evento-data">
-        </div>
-        <div class="campo">
-          <label>🕐 Hora</label>
-          <input type="time" id="evento-hora">
-        </div>
-      </div>
-      <div class="campo">
-        <label>📍 Local (opcional)</label>
-        <input type="text" id="evento-local" placeholder="Ex: Sala 301, Edifício Central">
-      </div>
-      <div class="campo">
-        <label>📋 Descrição (opcional)</label>
-        <textarea id="evento-descricao" placeholder="Detalhes do evento..."></textarea>
-      </div>
-      <button class="btn-gerar evento" onclick="gerarEvento()">Gerar QR Code</button>
-
-      <div class="info-evento-legivel" id="eventoPreview" style="display:none;">
-        📅 <span id="eventoPreviewTitulo"></span><br>
-        📆 <span id="eventoPreviewDataHora"></span><br>
-        📍 <span id="eventoPreviewLocal"></span>
-      </div>
-
-      <div class="qr-wrapper"><div id="qrcode-evento"></div></div>
-      <div class="info">📅 <span id="infoEvento">Nenhum QR Code gerado</span></div>
-    </div>
-
-    <!-- ===== INSTAGRAM ===== -->
-    <div id="tab-instagram" class="tab-content">
-      <div class="campo">
-        <label>@ Usuário do Instagram</label>
-        <input type="text" id="instagram-usuario" placeholder="Ex: joseaugustobaron">
-      </div>
-      <button class="btn-gerar instagram" onclick="gerarInstagram()">Gerar QR Code</button>
-      <div class="qr-wrapper"><div id="qrcode-instagram"></div></div>
-      <div class="info">@ <span id="infoInstagram">Nenhum QR Code gerado</span></div>
-    </div>
-
-    <!-- ===== WHATSAPP ===== -->
-    <div id="tab-whatsapp" class="tab-content">
-      <div class="campo">
-        <label>🟢 Número (com DDI e DDD)</label>
-        <input type="tel" id="whats-numero" placeholder="Ex: 55 47 99999-9999">
-      </div>
-      <div class="campo">
-        <label>✏️ Mensagem (opcional)</label>
-        <textarea id="whats-mensagem" placeholder="Mensagem pré-preenchida..."></textarea>
-      </div>
-      <button class="btn-gerar whatsapp" onclick="gerarWhatsapp()">Gerar QR Code</button>
-      <div class="qr-wrapper"><div id="qrcode-whatsapp"></div></div>
-      <div class="info">🟢 <span id="infoWhatsapp">Nenhum QR Code gerado</span></div>
-    </div>
-
-    <!-- ===== CONTATO (vCard COMPLETO) ===== -->
-    <div id="tab-contato" class="tab-content">
-      <div class="campo">
-        <label>👤 Nome completo</label>
-        <input type="text" id="contato-nome" placeholder="Ex: Augusto Baron">
-      </div>
-      <div class="campo">
-        <label>☎️ Telefone</label>
-        <input type="tel" id="contato-telefone" placeholder="Ex: +55 47 99999-9999">
-      </div>
-      <div class="campo">
-        <label>📧 E-mail (opcional)</label>
-        <input type="email" id="contato-email" placeholder="nome@exemplo.com">
-      </div>
-      <div class="campo">
-        <label>🏢 Empresa (opcional)</label>
-        <input type="text" id="contato-empresa" placeholder="Ex: FURB">
-      </div>
-      <button class="btn-gerar contato" onclick="gerarContato()">Gerar QR Code</button>
-      <div class="qr-wrapper"><div id="qrcode-contato"></div></div>
-      <div class="info">👤 <span id="infoContato">Nenhum QR Code gerado</span></div>
-    </div>
-
-    <!-- ===== LOCALIZAÇÃO ===== -->
-    <div id="tab-local" class="tab-content">
-      <div class="campo">
-        <label>📍 Endereço ou local</label>
-        <input type="text" id="local-endereco" placeholder="Ex: Rua Antônio da Veiga, 140, Blumenau">
-      </div>
-      <button class="btn-gerar local" onclick="gerarLocalizacao()">Gerar QR Code</button>
-      <div class="qr-wrapper"><div id="qrcode-local"></div></div>
-      <div class="info">📍 <span id="infoLocal">Nenhum QR Code gerado</span></div>
-    </div>
-
-    <div class="actions">
-      <button class="btn-download" onclick="baixarPNG()">⬇️ Baixar PNG</button>
-      <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
-    </div>
-
-    <div class="footer">QR Code estático — nunca expira</div>
+  <div class="tabs">
+    <button class="tab-btn ativo" data-tab="tab-site" onclick="trocarAba(this, 'tab-site')">🌐 Site</button>
+    <button class="tab-btn" data-tab="tab-wifi" onclick="trocarAba(this, 'tab-wifi')">📶 Wi-Fi</button>
+    <button class="tab-btn" data-tab="tab-texto" onclick="trocarAba(this, 'tab-texto')">📝 Texto</button>
+    <button class="tab-btn" data-tab="tab-email" onclick="trocarAba(this, 'tab-email')">📧 E-mail</button>
+    <button class="tab-btn" data-tab="tab-evento" onclick="trocarAba(this, 'tab-evento')">📅 Evento</button>
+    <button class="tab-btn" data-tab="tab-instagram" onclick="trocarAba(this, 'tab-instagram')">@ Instagram</button>
+    <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">🟢 WhatsApp</button>
+    <button class="tab-btn" data-tab="tab-contato" onclick="trocarAba(this, 'tab-contato')">👤 Contato</button>
+    <button class="tab-btn" data-tab="tab-local" onclick="trocarAba(this, 'tab-local')">📍 Local</button>
   </div>
+
+  <!-- ===== SITE ===== -->
+  <div id="tab-site" class="tab-content ativo">
+    <div class="campo">
+      <label>🔗 Link</label>
+      <input type="text" id="linkInput" placeholder="ex: www.globo.com" value="https://www.globo.com" oninput="validarUrl()">
+      <div class="erro-msg" id="urlErro">URL inválida. Inclua http:// ou https://</div>
+    </div>
+    <button class="btn-gerar site" onclick="gerarSite()">Gerar QR Code</button>
+    <div class="qr-wrapper"><div id="qrcode-site"></div></div>
+    <div class="info">🔗 <span id="infoSite">Nenhum QR Code gerado</span></div>
+  </div>
+
+  <!-- ===== WI-FI ===== -->
+  <div id="tab-wifi" class="tab-content">
+    <div class="campo">
+      <label>📡 Nome da rede (SSID)</label>
+      <input type="text" id="wifi-ssid" placeholder="Ex: MinhaWiFi" value="MinhaWiFi">
+    </div>
+    <div class="linha-dupla">
+      <div class="campo">
+        <label>🔑 Senha</label>
+        <input type="text" id="wifi-senha" placeholder="Senha" value="12345678">
+      </div>
+      <div class="campo">
+        <label>🔒 Segurança</label>
+        <select id="wifi-tipo" onchange="toggleSenhaWifi()">
+          <option value="WPA">WPA / WPA2</option>
+          <option value="WEP">WEP</option>
+          <option value="nopass">Aberta (sem senha)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-gerar wifi" onclick="gerarWifi()">Gerar QR Code</button>
+
+    <div class="info-wifi-legivel" id="wifiPreview" style="display:none;">
+      📶 <span id="wifiPreviewSsid"></span> · 🔒 <span id="wifiPreviewTipo"></span> · 🔑 <span id="wifiPreviewSenha"></span>
+    </div>
+
+    <div class="qr-wrapper"><div id="qrcode-wifi"></div></div>
+    <div class="info">📶 <span id="infoWifi">Nenhum QR Code gerado</span></div>
+  </div>
+
+  <!-- ===== TEXTO ===== -->
+  <div id="tab-texto" class="tab-content">
+    <div class="campo">
+      <label>📝 Texto livre</label>
+      <textarea id="texto-conteudo" placeholder="Digite qualquer texto..."></textarea>
+    </div>
+    <button class="btn-gerar texto" onclick="gerarTexto()">Gerar QR Code</button>
+    <div class="qr-wrapper"><div id="qrcode-texto"></div></div>
+    <div class="info">📝 <span id="infoTexto">Nenhum QR Code gerado</span></div>
+  </div>
+
+  <!-- ===== E-MAIL ===== -->
+  <div id="tab-email" class="tab-content">
+    <div class="campo">
+      <label>📧 Destinatário</label>
+      <input type="email" id="email-destino" placeholder="nome@exemplo.com">
+    </div>
+    <div class="campo">
+      <label>✏️ Assunto (opcional)</label>
+      <input type="text" id="email-assunto" placeholder="Assunto do e-mail">
+    </div>
+    <div class="campo">
+      <label>💬 Mensagem (opcional)</label>
+      <textarea id="email-mensagem" placeholder="Corpo da mensagem..."></textarea>
+    </div>
+    <button class="btn-gerar email" onclick="gerarEmail()">Gerar QR Code</button>
+    <div class="qr-wrapper"><div id="qrcode-email"></div></div>
+    <div class="info">📧 <span id="infoEmail">Nenhum QR Code gerado</span></div>
+  </div>
+
+  <!-- ===== EVENTO/AGENDA ===== -->
+  <div id="tab-evento" class="tab-content">
+    <div class="campo">
+      <label>📝 Título do evento</label>
+      <input type="text" id="evento-titulo" placeholder="Ex: Reunião com equipe">
+    </div>
+    <div class="linha-dupla">
+      <div class="campo">
+        <label>📆 Data</label>
+        <input type="date" id="evento-data">
+      </div>
+      <div class="campo">
+        <label>🕐 Hora</label>
+        <input type="time" id="evento-hora">
+      </div>
+    </div>
+    <div class="campo">
+      <label>📍 Local (opcional)</label>
+      <input type="text" id="evento-local" placeholder="Ex: Sala 301, Edifício Central">
+    </div>
+    <div class="campo">
+      <label>📋 Descrição (opcional)</label>
+      <textarea id="evento-descricao" placeholder="Detalhes do evento..."></textarea>
+    </div>
+    <button class="btn-gerar evento" onclick="gerarEvento()">Gerar QR Code</button>
+
+    <div class="info-evento-legivel" id="eventoPreview" style="display:none;">
+      📅 <span id="eventoPreviewTitulo"></span><br>
+      📆 <span id="eventoPreviewDataHora"></span><br>
+      📍 <span id="eventoPreviewLocal"></span>
+    </div>
+
+    <div class="qr-wrapper"><div id="qrcode-evento"></div></div>
+    <div class="info">📅 <span id="infoEvento">Nenhum QR Code gerado</span></div>
+  </div>
+
+  <!-- ===== INSTAGRAM ===== -->
+  <div id="tab-instagram" class="tab-content">
+    <div class="campo">
+      <label>@ Usuário do Instagram</label>
+      <input type="text" id="instagram-usuario" placeholder="Ex: joseaugustobaron">
+    </div>
+    <button class="btn-gerar instagram" onclick="gerarInstagram()">Gerar QR Code</button>
+    <div class="qr-wrapper"><div id="qrcode-instagram"></div></div>
+    <div class="info">@ <span id="infoInstagram">Nenhum QR Code gerado</span></div>
+  </div>
+
+  <!-- ===== WHATSAPP ===== -->
+  <div id="tab-whatsapp" class="tab-content">
+    <div class="campo">
+      <label>🟢 Número (com DDI e DDD)</label>
+      <input type="tel" id="whats-numero" placeholder="Ex: 55 47 99999-9999">
+    </div>
+    <div class="campo">
+      <label>✏️ Mensagem (opcional)</label>
+      <textarea id="whats-mensagem" placeholder="Mensagem pré-preenchida..."></textarea>
+    </div>
+    <button class="btn-gerar whatsapp" onclick="gerarWhatsapp()">Gerar QR Code</button>
+    <div class="qr-wrapper"><div id="qrcode-whatsapp"></div></div>
+    <div class="info">🟢 <span id="infoWhatsapp">Nenhum QR Code gerado</span></div>
+  </div>
+
+  <!-- ===== CONTATO (vCard COMPLETO) ===== -->
+  <div id="tab-contato" class="tab-content">
+    <div class="campo">
+      <label>👤 Nome completo</label>
+      <input type="text" id="contato-nome" placeholder="Ex: Augusto Baron">
+    </div>
+    <div class="campo">
+      <label>☎️ Telefone</label>
+      <input type="tel" id="contato-telefone" placeholder="Ex: +55 47 99999-9999">
+    </div>
+    <div class="campo">
+      <label>📧 E-mail (opcional)</label>
+      <input type="email" id="contato-email" placeholder="nome@exemplo.com">
+    </div>
+    <div class="campo">
+      <label>🏢 Empresa (opcional)</label>
+      <input type="text" id="contato-empresa" placeholder="Ex: FURB">
+    </div>
+    <button class="btn-gerar contato" onclick="gerarContato()">Gerar QR Code</button>
+    <div class="qr-wrapper"><div id="qrcode-contato"></div></div>
+    <div class="info">👤 <span id="infoContato">Nenhum QR Code gerado</span></div>
+  </div>
+
+  <!-- ===== LOCALIZAÇÃO ===== -->
+  <div id="tab-local" class="tab-content">
+    <div class="campo">
+      <label>📍 Endereço ou local</label>
+      <input type="text" id="local-endereco" placeholder="Ex: Rua Antônio da Veiga, 140, Blumenau">
+    </div>
+    <button class="btn-gerar local" onclick="gerarLocalizacao()">Gerar QR Code</button>
+    <div class="qr-wrapper"><div id="qrcode-local"></div></div>
+    <div class="info">📍 <span id="infoLocal">Nenhum QR Code gerado</span></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-download" onclick="baixarPNG()">⬇️ Baixar PNG</button>
+    <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
+  </div>
+
+  <div class="footer">QR Code estático — nunca expira</div>
 
   <!-- ===== MODAL ===== -->
   <div class="modal-overlay" id="modalOverlay">
