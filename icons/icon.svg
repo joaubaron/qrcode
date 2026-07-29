@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<!-- Fundo gradiente -->
+<defs>
+<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#1a2a6c"/>
+<stop offset="50%" style="stop-color:#b21f1f"/>
+<stop offset="100%" style="stop-color:#fdbb2d"/>
+</linearGradient>
+<rect id="bgRect" x="0" y="0" width="512" height="512" rx="100" ry="100"/>
+</defs>
+
+<!-- Background arredondado -->
+<rect width="512" height="512" rx="100" ry="100" fill="url(#bg)"/>
+
+<!-- QR Code simplificado -->
+<rect x="100" y="100" width="312" height="312" rx="20" fill="white"/>
+
+<!-- Padrão de QR Code estilizado -->
+<g fill="#1a2a6c">
+<!-- Cantos -->
+<rect x="120" y="120" width="60" height="60" rx="8"/>
+<rect x="332" y="120" width="60" height="60" rx="8"/>
+<rect x="120" y="332" width="60" height="60" rx="8"/>
+
+<!-- Quadrados internos dos cantos -->
+<rect x="135" y="135" width="30" height="30" fill="white" rx="4"/>
+<rect x="347" y="135" width="30" height="30" fill="white" rx="4"/>
+<rect x="135" y="347" width="30" height="30" fill="white" rx="4"/>
+
+<!-- Pontos do QR Code -->
+<rect x="220" y="120" width="30" height="30"/>
+<rect x="270" y="120" width="30" height="30"/>
+<rect x="220" y="170" width="30" height="30"/>
+
+<rect x="220" y="270" width="30" height="30"/>
+<rect x="270" y="270" width="30" height="30"/>
+<rect x="220" y="320" width="30" height="30"/>
+<rect x="270" y="320" width="30" height="30"/>
+
+<rect x="320" y="220" width="30" height="30"/>
+<rect x="320" y="270" width="30" height="30"/>
+
+<rect x="170" y="220" width="30" height="30"/>
+
+<rect x="370" y="220" width="30" height="30"/>
+<rect x="370" y="270" width="30" height="30"/>
+
+<rect x="170" y="320" width="30" height="30"/>
+<rect x="320" y="370" width="30" height="30"/>
+
+<!-- Ícone de QR no centro -->
+<rect x="226" y="226" width="60" height="60" fill="white" rx="12"/>
+<rect x="235" y="235" width="16" height="16" rx="4"/>
+<rect x="261" y="235" width="16" height="16" rx="4"/>
+<rect x="235" y="261" width="16" height="16" rx="4"/>
+<rect x="261" y="261" width="16" height="16" rx="4"/>
+</g>
+</svg>
