@@ -682,6 +682,186 @@ fecharModal();
 }
 });
 
+// ===== FUNÇÕES DE LOCALSTORAGE =====
+function salvarDados() {
+const dados = {
+// Site
+siteUrl: document.getElementById('linkInput').value,
+siteQR: document.getElementById('infoSite').textContent,
+siteGerado: document.getElementById('infoSite').textContent !== 'Nenhum QR Code gerado',
+
+// Wi-Fi
+wifiSsid: document.getElementById('wifi-ssid').value,
+wifiSenha: document.getElementById('wifi-senha').value,
+wifiTipo: document.getElementById('wifi-tipo').value,
+wifiQR: document.getElementById('infoWifi').textContent,
+wifiGerado: document.getElementById('infoWifi').textContent !== 'Nenhum QR Code gerado',
+wifiPreviewVisible: document.getElementById('wifiPreview').style.display !== 'none',
+
+// Texto
+textoConteudo: document.getElementById('texto-conteudo').value,
+textoQR: document.getElementById('infoTexto').textContent,
+textoGerado: document.getElementById('infoTexto').textContent !== 'Nenhum QR Code gerado',
+
+// Email
+emailDestino: document.getElementById('email-destino').value,
+emailAssunto: document.getElementById('email-assunto').value,
+emailMensagem: document.getElementById('email-mensagem').value,
+emailQR: document.getElementById('infoEmail').textContent,
+emailGerado: document.getElementById('infoEmail').textContent !== 'Nenhum QR Code gerado',
+
+// Evento
+eventoTitulo: document.getElementById('evento-titulo').value,
+eventoData: document.getElementById('evento-data').value,
+eventoHora: document.getElementById('evento-hora').value,
+eventoLocal: document.getElementById('evento-local').value,
+eventoDescricao: document.getElementById('evento-descricao').value,
+eventoQR: document.getElementById('infoEvento').textContent,
+eventoGerado: document.getElementById('infoEvento').textContent !== 'Nenhum QR Code gerado',
+eventoPreviewVisible: document.getElementById('eventoPreview').style.display !== 'none',
+
+// Instagram
+instagramUsuario: document.getElementById('instagram-usuario').value,
+instagramQR: document.getElementById('infoInstagram').textContent,
+instagramGerado: document.getElementById('infoInstagram').textContent !== 'Nenhum QR Code gerado',
+
+// WhatsApp
+whatsNumero: document.getElementById('whats-numero').value,
+whatsMensagem: document.getElementById('whats-mensagem').value,
+whatsQR: document.getElementById('infoWhatsapp').textContent,
+whatsGerado: document.getElementById('infoWhatsapp').textContent !== 'Nenhum QR Code gerado',
+
+// Contato
+contatoNome: document.getElementById('contato-nome').value,
+contatoTelefone: document.getElementById('contato-telefone').value,
+contatoEmail: document.getElementById('contato-email').value,
+contatoEmpresa: document.getElementById('contato-empresa').value,
+contatoQR: document.getElementById('infoContato').textContent,
+contatoGerado: document.getElementById('infoContato').textContent !== 'Nenhum QR Code gerado',
+
+// Local
+localEndereco: document.getElementById('local-endereco').value,
+localQR: document.getElementById('infoLocal').textContent,
+localGerado: document.getElementById('infoLocal').textContent !== 'Nenhum QR Code gerado',
+
+// Aba atual
+abaAtual: abaAtual
+};
+
+localStorage.setItem('qrAppDados', JSON.stringify(dados));
+}
+
+function carregarDados() {
+const dadosSalvos = localStorage.getItem('qrAppDados');
+if (!dadosSalvos) return;
+
+try {
+const dados = JSON.parse(dadosSalvos);
+
+// Restaurar Site
+document.getElementById('linkInput').value = dados.siteUrl || '';
+if (dados.siteGerado && dados.siteQR && dados.siteQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-site', dados.siteQR);
+document.getElementById('infoSite').textContent = dados.siteQR;
+}
+
+// Restaurar Wi-Fi
+document.getElementById('wifi-ssid').value = dados.wifiSsid || '';
+document.getElementById('wifi-senha').value = dados.wifiSenha || '';
+document.getElementById('wifi-tipo').value = dados.wifiTipo || 'WPA';
+toggleSenhaWifi();
+if (dados.wifiGerado && dados.wifiQR && dados.wifiQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-wifi', dados.wifiQR);
+document.getElementById('infoWifi').textContent = dados.wifiQR;
+if (dados.wifiPreviewVisible) {
+const preview = document.getElementById('wifiPreview');
+document.getElementById('wifiPreviewSsid').textContent = dados.wifiSsid || '';
+document.getElementById('wifiPreviewTipo').textContent = dados.wifiTipo === 'nopass' ? 'Aberta' : (dados.wifiTipo || 'WPA');
+document.getElementById('wifiPreviewSenha').textContent = dados.wifiTipo === 'nopass' ? '—' : (dados.wifiSenha || '(vazia)');
+preview.style.display = 'block';
+}
+}
+
+// Restaurar Texto
+document.getElementById('texto-conteudo').value = dados.textoConteudo || '';
+if (dados.textoGerado && dados.textoQR && dados.textoQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-texto', dados.textoQR);
+document.getElementById('infoTexto').textContent = dados.textoQR;
+}
+
+// Restaurar Email
+document.getElementById('email-destino').value = dados.emailDestino || '';
+document.getElementById('email-assunto').value = dados.emailAssunto || '';
+document.getElementById('email-mensagem').value = dados.emailMensagem || '';
+if (dados.emailGerado && dados.emailQR && dados.emailQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-email', dados.emailQR);
+document.getElementById('infoEmail').textContent = dados.emailQR;
+}
+
+// Restaurar Evento
+document.getElementById('evento-titulo').value = dados.eventoTitulo || '';
+document.getElementById('evento-data').value = dados.eventoData || '';
+document.getElementById('evento-hora').value = dados.eventoHora || '';
+document.getElementById('evento-local').value = dados.eventoLocal || '';
+document.getElementById('evento-descricao').value = dados.eventoDescricao || '';
+if (dados.eventoGerado && dados.eventoQR && dados.eventoQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-evento', dados.eventoQR);
+document.getElementById('infoEvento').textContent = dados.eventoQR;
+if (dados.eventoPreviewVisible) {
+const preview = document.getElementById('eventoPreview');
+document.getElementById('eventoPreviewTitulo').textContent = dados.eventoTitulo || '';
+const dataHora = formatarDataHora(dados.eventoData || '', dados.eventoHora || '');
+document.getElementById('eventoPreviewDataHora').textContent = dataHora;
+document.getElementById('eventoPreviewLocal').textContent = dados.eventoLocal || '(local não informado)';
+preview.style.display = 'block';
+}
+}
+
+// Restaurar Instagram
+document.getElementById('instagram-usuario').value = dados.instagramUsuario || '';
+if (dados.instagramGerado && dados.instagramQR && dados.instagramQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-instagram', dados.instagramQR);
+document.getElementById('infoInstagram').textContent = dados.instagramQR;
+}
+
+// Restaurar WhatsApp
+document.getElementById('whats-numero').value = dados.whatsNumero || '';
+document.getElementById('whats-mensagem').value = dados.whatsMensagem || '';
+if (dados.whatsGerado && dados.whatsQR && dados.whatsQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-whatsapp', dados.whatsQR);
+document.getElementById('infoWhatsapp').textContent = dados.whatsQR;
+}
+
+// Restaurar Contato
+document.getElementById('contato-nome').value = dados.contatoNome || '';
+document.getElementById('contato-telefone').value = dados.contatoTelefone || '';
+document.getElementById('contato-email').value = dados.contatoEmail || '';
+document.getElementById('contato-empresa').value = dados.contatoEmpresa || '';
+if (dados.contatoGerado && dados.contatoQR && dados.contatoQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-contato', dados.contatoQR);
+document.getElementById('infoContato').textContent = dados.contatoQR;
+}
+
+// Restaurar Local
+document.getElementById('local-endereco').value = dados.localEndereco || '';
+if (dados.localGerado && dados.localQR && dados.localQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-local', dados.localQR);
+document.getElementById('infoLocal').textContent = dados.localQR;
+}
+
+// Restaurar aba atual
+if (dados.abaAtual) {
+const btnAtual = document.querySelector(`.tab-btn[data-tab="${dados.abaAtual}"]`);
+if (btnAtual) {
+trocarAba(btnAtual, dados.abaAtual);
+}
+}
+
+} catch (e) {
+console.error('Erro ao carregar dados:', e);
+}
+}
+
 // ===== FUNÇÕES DO APP =====
 let abaAtual = 'tab-site';
 let senhaAntiga = '12345678';
@@ -704,6 +884,7 @@ document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ati
 document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('ativo'));
 document.getElementById(id).classList.add('ativo');
 botao.classList.add('ativo');
+salvarDados();
 }
 
 function validarUrl() {
@@ -803,7 +984,7 @@ canvasExibicao.dataset.qrData = texto;
 qr.appendChild(canvasExibicao);
 }
 
-// ===== FUNÇÕES GERADORAS =====
+// ===== FUNÇÕES GERADORAS (MODIFICADAS PARA SALVAR) =====
 
 function gerarSite() {
 let url = document.getElementById('linkInput').value.trim();
@@ -824,6 +1005,7 @@ document.getElementById('linkInput').value = url;
 
 renderizarQR('qrcode-site', url);
 document.getElementById('infoSite').textContent = url;
+salvarDados();
 }
 
 function gerarWifi() {
@@ -856,6 +1038,7 @@ document.getElementById('wifiPreviewSsid').textContent = ssid;
 document.getElementById('wifiPreviewTipo').textContent = tipo === 'nopass' ? 'Aberta' : tipo;
 document.getElementById('wifiPreviewSenha').textContent = tipo === 'nopass' ? '—' : (senha || '(vazia)');
 preview.style.display = 'block';
+salvarDados();
 }
 
 function gerarTexto() {
@@ -867,6 +1050,7 @@ return;
 
 renderizarQR('qrcode-texto', texto);
 document.getElementById('infoTexto').textContent = texto;
+salvarDados();
 }
 
 function gerarEmail() {
@@ -887,9 +1071,9 @@ if (params.length) txt += '?' + params.join('&');
 
 renderizarQR('qrcode-email', txt);
 document.getElementById('infoEmail').textContent = txt;
+salvarDados();
 }
 
-// ===== EVENTO/AGENDA =====
 function gerarEvento() {
 const titulo = document.getElementById('evento-titulo').value.trim();
 const data = document.getElementById('evento-data').value;
@@ -912,12 +1096,9 @@ mostrarModal('⚠️', 'Campo Vazio', 'Selecione a hora do evento.', 'warning');
 return;
 }
 
-// Formato ISO para Google Calendar
 const dataHoraInicio = `${data.replace(/-/g, '')}T${hora.replace(/:/g, '')}00`;
-// Duração padrão: 1 hora
 const dataHoraFim = `${data.replace(/-/g, '')}T${String(Number(hora.replace(/:/g, '')) + 100).padStart(4, '0')}00`;
 
-// Monta URL do Google Calendar
 let txt = `https://www.google.com/calendar/render?action=TEMPLATE`;
 txt += `&text=${encodeURIComponent(titulo)}`;
 txt += `&dates=${dataHoraInicio}/${dataHoraFim}`;
@@ -926,19 +1107,17 @@ if (descricao) txt += `&details=${encodeURIComponent(descricao)}`;
 
 renderizarQR('qrcode-evento', txt);
 
-// Info legível
 const dataHoraFormatada = formatarDataHora(data, hora);
 document.getElementById('infoEvento').textContent = `${titulo} · ${dataHoraFormatada}${local ? ' · ' + local : ''}`;
 
-// Preview
 const preview = document.getElementById('eventoPreview');
 document.getElementById('eventoPreviewTitulo').textContent = titulo;
 document.getElementById('eventoPreviewDataHora').textContent = dataHoraFormatada;
 document.getElementById('eventoPreviewLocal').textContent = local || '(local não informado)';
 preview.style.display = 'block';
+salvarDados();
 }
 
-// ===== INSTAGRAM =====
 function gerarInstagram() {
 let usuario = document.getElementById('instagram-usuario').value.trim();
 
@@ -947,7 +1126,6 @@ mostrarModal('⚠️', 'Campo Vazio', 'Digite o usuário do Instagram.', 'warnin
 return;
 }
 
-// Aceita @usuario, usuario, ou link completo já colado
 usuario = usuario.replace(/^@/, '');
 usuario = usuario.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '');
 usuario = usuario.replace(/\/+$/, '');
@@ -956,9 +1134,9 @@ const url = `https://www.instagram.com/${usuario}/`;
 
 renderizarQR('qrcode-instagram', url);
 document.getElementById('infoInstagram').textContent = url;
+salvarDados();
 }
 
-// ===== WHATSAPP =====
 function gerarWhatsapp() {
 const numero = document.getElementById('whats-numero').value.trim();
 const mensagem = document.getElementById('whats-mensagem').value.trim();
@@ -973,9 +1151,9 @@ if (mensagem) txt += `?text=${encodeURIComponent(mensagem)}`;
 
 renderizarQR('qrcode-whatsapp', txt);
 document.getElementById('infoWhatsapp').textContent = txt;
+salvarDados();
 }
 
-// ===== CONTATO =====
 function gerarContato() {
 const nome = document.getElementById('contato-nome').value.trim();
 const telefone = document.getElementById('contato-telefone').value.trim();
@@ -994,9 +1172,9 @@ txt += `\nEND:VCARD`;
 
 renderizarQR('qrcode-contato', txt);
 document.getElementById('infoContato').textContent = `${nome}${telefone ? ' · ' + telefone : ''}${email ? ' · ' + email : ''}`;
+salvarDados();
 }
 
-// ===== LOCALIZAÇÃO =====
 function gerarLocalizacao() {
 const endereco = document.getElementById('local-endereco').value.trim();
 if (!endereco) { 
@@ -1007,6 +1185,7 @@ return;
 const txt = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
 renderizarQR('qrcode-local', txt);
 document.getElementById('infoLocal').textContent = endereco;
+salvarDados();
 }
 
 // ===== DOWNLOAD =====
@@ -1092,9 +1271,7 @@ document.getElementById('evento-local').value = '';
 document.getElementById('evento-descricao').value = '';
 document.getElementById('eventoPreview').style.display = 'none';
 
-// INSTAGRAM
 document.getElementById('instagram-usuario').value = '';
-
 document.getElementById('whats-numero').value = '';
 document.getElementById('whats-mensagem').value = '';
 document.getElementById('contato-nome').value = '';
@@ -1102,6 +1279,9 @@ document.getElementById('contato-telefone').value = '';
 document.getElementById('contato-email').value = '';
 document.getElementById('contato-empresa').value = '';
 document.getElementById('local-endereco').value = '';
+
+// Limpar localStorage também
+localStorage.removeItem('qrAppDados');
 
 mostrarModal('🗑️', 'Tudo Limpo!', 'Todos os campos e QR Codes foram limpos.', 'info');
 }
@@ -1140,6 +1320,9 @@ const horaAtual = agora.toTimeString().slice(0, 5);
 document.getElementById('evento-data').value = dataAtual;
 document.getElementById('evento-hora').value = horaAtual;
 
+// Carregar dados salvos
+carregarDados();
+
 document.getElementById('linkInput').addEventListener('keypress', e => {
 if (e.key === 'Enter') gerarSite();
 });
@@ -1167,6 +1350,9 @@ gerar();
 });
 });
 });
+
+// Salvar dados ao fechar a página
+window.addEventListener('beforeunload', salvarDados);
 };
 </script>
 </body>
