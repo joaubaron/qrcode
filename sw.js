@@ -23,7 +23,7 @@ return cache.addAll(ASSETS);
 );
 });
 
-// Ativação - limpa caches antigos
+// Ativação - limpa todos caches antigos
 self.addEventListener('activate', (event) => {
 event.waitUntil(
 caches.keys().then((cacheNames) => {
