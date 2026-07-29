@@ -1,6 +1,8 @@
 // sw.js - Service Worker para offline
-const CACHE_NAME = 'qr-code-v1';
-const urlsToCache = [
+const CACHE_VERSION = '26.06.2026-0844';
+const CACHE_NAME = `qr-code-${CACHE_VERSION}`;
+const STATIC_ASSETS = [
+
 '/',
 '/index.html',
 '/manifest.json',
