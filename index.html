@@ -976,12 +976,12 @@ preview.style.display = 'block';
 // ===== PIX CORRIGIDO (SEM BIBLIOTECA EXTERNA) =====
 function gerarPix() {
 
-    const chave = document.getElementById('pix-chave').value.trim();
+    const chaveOriginal = document.getElementById('pix-chave').value.trim();
     const valor = document.getElementById('pix-valor').value.trim();
     const id = document.getElementById('pix-id').value.trim() || "***";
     const descricao = document.getElementById('pix-descricao').value.trim();
 
-    if (!chave) {
+    if (!chaveOriginal) {
         mostrarModal('⚠️','Campo vazio','Digite a chave PIX.','warning');
         return;
     }
@@ -990,35 +990,51 @@ function gerarPix() {
         return id + String(valor.length).padStart(2,'0') + valor;
     }
 
-    //==========================
-    // Merchant Account Info
-    //==========================
+    // Corrige a chave automaticamente
+    let chave = chaveOriginal;
+
+    // email
+    if (chave.includes("@")) {
+        chave = chave.toLowerCase();
+
+    // telefone
+    } else if (chave.startsWith("+")) {
+        chave = chave.replace(/[^\d+]/g,'');
+
+    // CPF/CNPJ
+    } else if (/^[\d.\-\/()\s]+$/.test(chave)) {
+        chave = chave.replace(/\D/g,'');
+
+    // chave aleatória
+    } else {
+        chave = chave.trim();
+    }
 
     let merchant =
         campo("00","BR.GOV.BCB.PIX") +
         campo("01",chave);
 
-    if(descricao){
+    if (descricao) {
         merchant += campo("02",descricao.substring(0,99));
     }
 
     let payload = "";
 
-    payload += campo("00","01");          // Payload Format Indicator
-    payload += campo("01","11");          // Static QR
-
+    payload += campo("00","01");
+    payload += campo("01","11");
     payload += campo("26",merchant);
-
     payload += campo("52","0000");
     payload += campo("53","986");
 
-    if(valor){
+    if (valor) {
+
         const v = parseFloat(
-            valor.replace(",",".")
-                 .replace(/[^\d.]/g,"")
+            valor
+                .replace(/\./g,"")
+                .replace(",",".")
         );
 
-        if(!isNaN(v) && v>0){
+        if (!isNaN(v) && v > 0) {
             payload += campo("54",v.toFixed(2));
         }
     }
@@ -1033,27 +1049,23 @@ function gerarPix() {
     );
 
     payload += "6304";
+    payload += calcularCRC16(payload);
 
-    const crc = calcularCRC16(payload);
-
-    payload += crc;
+    console.log(payload);
 
     renderizarQR("qrcode-pix", payload);
 
-    document.getElementById("infoPix").textContent = chave;
-
-    document.getElementById("pixPreviewChave").textContent = chave;
-
+    document.getElementById("infoPix").textContent = chaveOriginal;
+    document.getElementById("pixPreviewChave").textContent = chaveOriginal;
     document.getElementById("pixPreviewValor").textContent =
-        valor ? "R$ " + parseFloat(valor.replace(",",".")).toFixed(2).replace(".",",")
-              : "R$ 0,00";
+        valor
+            ? "R$ " + parseFloat(valor.replace(",",".")).toFixed(2).replace(".",",")
+            : "R$ 0,00";
 
     document.getElementById("pixPreviewDescricao").textContent =
         descricao || "—";
 
     document.getElementById("pixPreview").style.display = "block";
-
-    console.log(payload);
 }
 
 // ===== FUNÇÃO CRC16 =====
