@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de QR Code</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Carrega do CDN primeiro -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    
+    <!-- Fallback simples para offline -->
     <script>
-        if (typeof QRCode === 'undefined') {
+        if (typeof qrcode === 'undefined') {
             document.write('<script src="qrcode.min.js"><\/script>');
         }
     </script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -207,6 +212,8 @@
         .qr-wrapper canvas {
             display: block;
             background: white;
+            max-width: 100%;
+            height: auto;
         }
 
         .info {
@@ -222,7 +229,6 @@
 
         .info span { color: #1a2a6c; font-weight: 500; }
 
-        /* PREVIEW DO WIFI - TUDO NA MESMA LINHA */
         .info-wifi-legivel {
             font-size: 12px;
             color: #555;
@@ -256,7 +262,7 @@
         .actions button:hover { transform: translateY(-2px); }
 
         .btn-download {
-            background: #28a745;
+            background: #999999;
             color: white;
         }
 
@@ -275,6 +281,118 @@
             .container { padding: 20px 16px; }
             .linha-dupla { flex-direction: column; gap: 0; }
             .tab-btn { font-size: 11px; padding: 8px 2px; }
+        }
+
+        /* ===== MODAL PERSONALIZADO ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInModal 0.3s ease;
+        }
+
+        .modal-overlay.ativo {
+            display: flex;
+        }
+
+        @keyframes fadeInModal {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 28px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-icon {
+            font-size: 52px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .modal-icon.error { color: #dc3545; }
+        .modal-icon.success { color: #28a745; }
+        .modal-icon.warning { color: #ffc107; }
+        .modal-icon.info { color: #17a2b8; }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .modal-message {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-line;
+        }
+
+        .modal-btn {
+            padding: 10px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-btn.primary {
+            background: #1a2a6c;
+            color: white;
+        }
+
+        .modal-btn.success {
+            background: #28a745;
+            color: white;
+        }
+
+        .modal-btn.danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn.warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .modal-btn.info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .modal-btn.gray {
+            background: #6c757d;
+            color: white;
         }
     </style>
 </head>
@@ -300,7 +418,7 @@
     <div id="tab-site" class="tab-content ativo">
         <div class="campo">
             <label>🔗 Link</label>
-            <input type="text" id="linkInput" placeholder="ex: www.globo.com" value="https://www.globo.com/" oninput="validarUrl()">
+            <input type="text" id="linkInput" placeholder="ex: www.globo.com" value="https://www.globo.com" oninput="validarUrl()">
             <div class="erro-msg" id="urlErro">URL inválida. Inclua http:// ou https://</div>
         </div>
         <button class="btn-gerar site" onclick="gerarSite()">Gerar QR Code</button>
@@ -330,7 +448,6 @@
         </div>
         <button class="btn-gerar wifi" onclick="gerarWifi()">Gerar QR Code</button>
 
-        <!-- PREVIEW DO WIFI - TUDO NA MESMA LINHA -->
         <div class="info-wifi-legivel" id="wifiPreview" style="display:none;">
             📶 <span id="wifiPreviewSsid"></span> · 🔒 <span id="wifiPreviewTipo"></span> · 🔑 <span id="wifiPreviewSenha"></span>
         </div>
@@ -452,12 +569,61 @@
     <div class="footer">QR Code estático — nunca expira</div>
 </div>
 
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <span class="modal-icon" id="modalIcon">⚠️</span>
+        <h2 class="modal-title" id="modalTitle">Atenção</h2>
+        <p class="modal-message" id="modalMessage">Mensagem aqui</p>
+        <button class="modal-btn primary" id="modalBtn" onclick="fecharModal()">OK</button>
+    </div>
+</div>
+
 <script>
+    // ===== VERIFICAÇÃO DA BIBLIOTECA =====
+    if (typeof qrcode === 'undefined') {
+        mostrarModal(
+            '❌', 
+            'Erro de Carregamento', 
+            'Biblioteca QR Code não carregada.\n\nPara funcionar offline, baixe o arquivo qrcode.min.js e coloque na mesma pasta do index.html.\n\nBaixe em: https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js',
+            'danger'
+        );
+    }
+
+    // ===== FUNÇÕES DO MODAL =====
+    function mostrarModal(icone, titulo, mensagem, tipoBotao = 'primary') {
+        document.getElementById('modalIcon').textContent = icone;
+        document.getElementById('modalTitle').textContent = titulo;
+        document.getElementById('modalMessage').textContent = mensagem;
+        
+        const btn = document.getElementById('modalBtn');
+        btn.className = 'modal-btn ' + tipoBotao;
+        
+        document.getElementById('modalOverlay').classList.add('ativo');
+    }
+
+    function fecharModal() {
+        document.getElementById('modalOverlay').classList.remove('ativo');
+    }
+
+    // Fechar modal clicando fora
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            fecharModal();
+        }
+    });
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            fecharModal();
+        }
+    });
+
+    // ===== FUNÇÕES DO APP =====
     let abaAtual = 'tab-site';
     let senhaAntiga = '12345678';
 
-    // Configuração de cada aba: onde fica o QR, onde fica o texto de info
-    // e qual o nome de arquivo sugerido ao baixar o PNG.
     const ABAS = {
         'tab-site':      { qrId: 'qrcode-site',      infoId: 'infoSite',      arquivo: 'qrcode-site.png' },
         'tab-wifi':      { qrId: 'qrcode-wifi',      infoId: 'infoWifi',      arquivo: 'qrcode-wifi.png' },
@@ -522,15 +688,6 @@
                     .replace(/&/g, '\\&');
     }
 
-    // Escapa campos de vCard (backslash, vírgula, ponto-e-vírgula e quebras de linha)
-    function escaparVCard(texto) {
-        return texto.replace(/\\/g, '\\\\')
-                    .replace(/;/g, '\\;')
-                    .replace(/,/g, '\\,')
-                    .replace(/\n/g, '\\n');
-    }
-
-    // Mantém apenas dígitos e o "+" inicial (para telefone, SMS, WhatsApp)
     function apenasDigitos(texto) {
         let limpo = texto.trim().replace(/[^\d+]/g, '');
         const comMais = limpo.startsWith('+');
@@ -540,23 +697,51 @@
 
     function renderizarQR(divId, texto) {
         const qr = document.getElementById(divId);
-        qr.innerHTML = '';
-        new QRCode(qr, {
-            text: texto,
-            width: 200,
-            height: 200,
-            colorDark: "#000",
-            colorLight: "#fff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
-    }
+        qr.innerHTML = "";
 
+        const qrObj = qrcode(0, 'M');
+        qrObj.addData(String(texto));
+        qrObj.make();
+
+        const canvasExibicao = document.createElement('canvas');
+        const tamanhoExibicao = 200;
+        canvasExibicao.width = tamanhoExibicao;
+        canvasExibicao.height = tamanhoExibicao;
+        canvasExibicao.style.width = tamanhoExibicao + 'px';
+        canvasExibicao.style.height = tamanhoExibicao + 'px';
+        
+        const ctx = canvasExibicao.getContext('2d');
+        const cells = qrObj.getModuleCount();
+        const cellSize = tamanhoExibicao / cells;
+        
+        ctx.imageSmoothingEnabled = false;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, tamanhoExibicao, tamanhoExibicao);
+        
+        ctx.fillStyle = '#000000';
+        for (let row = 0; row < cells; row++) {
+            for (let col = 0; col < cells; col++) {
+                if (qrObj.isDark(row, col)) {
+                    ctx.fillRect(Math.floor(col * cellSize), Math.floor(row * cellSize), Math.ceil(cellSize), Math.ceil(cellSize));
+                }
+            }
+        }
+        
+        canvasExibicao.dataset.qrData = texto;
+        qr.appendChild(canvasExibicao);
+    }
+    
+    // ===== FUNÇÕES GERADORAS (SEM MODAIS DE SUCESSO) =====
+    
     function gerarSite() {
         let url = document.getElementById('linkInput').value.trim();
-        if (!url) { alert('Digite um link.'); return; }
+        if (!url) { 
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite um link para gerar o QR Code.', 'warning');
+            return; 
+        }
 
         if (url.toLowerCase().startsWith('javascript:')) {
-            alert('URL inválida.');
+            mostrarModal('❌', 'URL Inválida', 'Esta URL não é permitida por motivos de segurança.', 'danger');
             return;
         }
 
@@ -575,7 +760,7 @@
         const tipo = document.getElementById('wifi-tipo').value;
 
         if (!ssid) {
-            alert('Digite o nome da rede (SSID).');
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite o nome da rede Wi-Fi (SSID).', 'warning');
             return;
         }
 
@@ -594,7 +779,6 @@
         renderizarQR('qrcode-wifi', txt);
         document.getElementById('infoWifi').textContent = txt;
 
-        // Preview legível - TUDO NA MESMA LINHA
         const preview = document.getElementById('wifiPreview');
         document.getElementById('wifiPreviewSsid').textContent = ssid;
         document.getElementById('wifiPreviewTipo').textContent = tipo === 'nopass' ? 'Aberta' : tipo;
@@ -604,7 +788,10 @@
 
     function gerarTexto() {
         const texto = document.getElementById('texto-conteudo').value.trim();
-        if (!texto) { alert('Digite um texto.'); return; }
+        if (!texto) { 
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite um texto para gerar o QR Code.', 'warning');
+            return; 
+        }
 
         renderizarQR('qrcode-texto', texto);
         document.getElementById('infoTexto').textContent = texto;
@@ -615,7 +802,10 @@
         const assunto = document.getElementById('email-assunto').value.trim();
         const mensagem = document.getElementById('email-mensagem').value.trim();
 
-        if (!destino) { alert('Digite o e-mail do destinatário.'); return; }
+        if (!destino) { 
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite o e-mail do destinatário.', 'warning');
+            return; 
+        }
 
         let txt = `mailto:${destino}`;
         const params = [];
@@ -629,7 +819,10 @@
 
     function gerarTelefone() {
         const numero = document.getElementById('telefone-numero').value.trim();
-        if (!numero) { alert('Digite um número de telefone.'); return; }
+        if (!numero) { 
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite um número de telefone.', 'warning');
+            return; 
+        }
 
         const txt = `tel:${apenasDigitos(numero)}`;
         renderizarQR('qrcode-telefone', txt);
@@ -639,7 +832,10 @@
     function gerarSms() {
         const numero = document.getElementById('sms-numero').value.trim();
         const mensagem = document.getElementById('sms-mensagem').value.trim();
-        if (!numero) { alert('Digite um número de telefone.'); return; }
+        if (!numero) { 
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite um número de telefone para o SMS.', 'warning');
+            return; 
+        }
 
         let txt = `sms:${apenasDigitos(numero)}`;
         if (mensagem) txt += `?body=${encodeURIComponent(mensagem)}`;
@@ -651,7 +847,10 @@
     function gerarWhatsapp() {
         const numero = document.getElementById('whats-numero').value.trim();
         const mensagem = document.getElementById('whats-mensagem').value.trim();
-        if (!numero) { alert('Digite um número de telefone.'); return; }
+        if (!numero) { 
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite um número de telefone para o WhatsApp.', 'warning');
+            return; 
+        }
 
         const numeroLimpo = apenasDigitos(numero).replace('+', '');
         let txt = `https://wa.me/${numeroLimpo}`;
@@ -667,19 +866,12 @@
         const email = document.getElementById('contato-email').value.trim();
         const empresa = document.getElementById('contato-empresa').value.trim();
 
-        if (!nome) { alert('Digite o nome do contato.'); return; }
+        if (!nome) { 
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite o nome do contato.', 'warning');
+            return; 
+        }
 
-        const partes = nome.split(' ').filter(Boolean);
-        const sobrenome = partes.length > 1 ? partes.pop() : '';
-        const restante = partes.join(' ');
-
-        let txt = 'BEGIN:VCARD\nVERSION:3.0\n';
-        txt += `N:${escaparVCard(sobrenome)};${escaparVCard(restante)};;;\n`;
-        txt += `FN:${escaparVCard(nome)}\n`;
-        if (empresa) txt += `ORG:${escaparVCard(empresa)}\n`;
-        if (telefone) txt += `TEL;TYPE=CELL:${apenasDigitos(telefone)}\n`;
-        if (email) txt += `EMAIL:${escaparVCard(email)}\n`;
-        txt += 'END:VCARD';
+        let txt = `BEGIN:VCARD\nFN:${nome}\nTEL:${telefone}\nEND:VCARD`;
 
         renderizarQR('qrcode-contato', txt);
         document.getElementById('infoContato').textContent = `${nome}${telefone ? ' · ' + telefone : ''}${email ? ' · ' + email : ''}`;
@@ -687,7 +879,10 @@
 
     function gerarLocalizacao() {
         const endereco = document.getElementById('local-endereco').value.trim();
-        if (!endereco) { alert('Digite um endereço ou local.'); return; }
+        if (!endereco) { 
+            mostrarModal('⚠️', 'Campo Vazio', 'Digite um endereço ou local.', 'warning');
+            return; 
+        }
 
         const txt = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
         renderizarQR('qrcode-local', txt);
@@ -697,93 +892,92 @@
     function baixarPNG() {
         const config = ABAS[abaAtual];
         const div = document.getElementById(config.qrId);
-        const canvas = div.querySelector('canvas');
-        if (!canvas) {
-            alert('Gere um QR Code primeiro!');
+        const canvasExibicao = div.querySelector('canvas');
+        
+        if (!canvasExibicao) {
+            mostrarModal('⚠️', 'Nenhum QR Code', 'Gere um QR Code primeiro antes de baixar.', 'warning');
             return;
         }
-
-        const tamanho = 1024;
-        const borda = 80;
-        const qrTamanho = tamanho - (borda * 2);
-
-        const novo = document.createElement('canvas');
-        novo.width = tamanho;
-        novo.height = tamanho;
-        const ctx = novo.getContext('2d');
-
+        
+        const texto = canvasExibicao.dataset.qrData;
+        if (!texto) {
+            mostrarModal('❌', 'Erro', 'Dados do QR Code não encontrados. Tente gerar novamente.', 'danger');
+            return;
+        }
+        
+        const qrObj = qrcode(0, 'M');
+        qrObj.addData(String(texto));
+        qrObj.make();
+        
+        const cells = qrObj.getModuleCount();
+        const tamanhoDownload = 1024;
+        const cellSize = tamanhoDownload / cells;
+        
+        const canvasDownload = document.createElement('canvas');
+        canvasDownload.width = tamanhoDownload;
+        canvasDownload.height = tamanhoDownload;
+        const ctx = canvasDownload.getContext('2d');
+        
+        ctx.imageSmoothingEnabled = false;
+        
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, tamanho, tamanho);
-
-        ctx.drawImage(canvas, borda, borda, qrTamanho, qrTamanho);
-
+        ctx.fillRect(0, 0, tamanhoDownload, tamanhoDownload);
+        
+        ctx.fillStyle = '#000000';
+        for (let row = 0; row < cells; row++) {
+            for (let col = 0; col < cells; col++) {
+                if (qrObj.isDark(row, col)) {
+                    ctx.fillRect(
+                        Math.floor(col * cellSize), 
+                        Math.floor(row * cellSize), 
+                        Math.ceil(cellSize), 
+                        Math.ceil(cellSize)
+                    );
+                }
+            }
+        }
+        
         const link = document.createElement('a');
         link.download = config.arquivo;
-        link.href = novo.toDataURL('image/png');
+        link.href = canvasDownload.toDataURL('image/png');
         link.click();
     }
 
     function limparTudo() {
-        // Limpa QR codes e textos de info de todas as abas
         Object.values(ABAS).forEach(cfg => {
             document.getElementById(cfg.qrId).innerHTML = '';
             document.getElementById(cfg.infoId).textContent = 'Nenhum QR Code gerado';
         });
 
-        // Site
         document.getElementById('linkInput').value = '';
         document.getElementById('urlErro').classList.remove('visivel');
         document.getElementById('linkInput').classList.remove('erro');
 
-        // Wi-Fi
         document.getElementById('wifi-ssid').value = '';
         document.getElementById('wifi-senha').value = '';
         document.getElementById('wifi-tipo').value = 'WPA';
         document.getElementById('wifiPreview').style.display = 'none';
         toggleSenhaWifi();
 
-        // Texto
         document.getElementById('texto-conteudo').value = '';
-
-        // E-mail
         document.getElementById('email-destino').value = '';
         document.getElementById('email-assunto').value = '';
         document.getElementById('email-mensagem').value = '';
-
-        // Telefone
         document.getElementById('telefone-numero').value = '';
-
-        // SMS
         document.getElementById('sms-numero').value = '';
         document.getElementById('sms-mensagem').value = '';
-
-        // WhatsApp
         document.getElementById('whats-numero').value = '';
         document.getElementById('whats-mensagem').value = '';
-
-        // Contato
         document.getElementById('contato-nome').value = '';
         document.getElementById('contato-telefone').value = '';
         document.getElementById('contato-email').value = '';
         document.getElementById('contato-empresa').value = '';
-
-        // Localização
         document.getElementById('local-endereco').value = '';
+        
+        mostrarModal('🗑️', 'Tudo Limpo!', 'Todos os campos e QR Codes foram limpos.', 'info');
     }
 
-    // Mapeia cada aba à sua função geradora, para o atalho "Enter"
-    const GERADORES = {
-        'tab-site': gerarSite,
-        'tab-wifi': gerarWifi,
-        'tab-texto': gerarTexto,
-        'tab-email': gerarEmail,
-        'tab-telefone': gerarTelefone,
-        'tab-sms': gerarSms,
-        'tab-whatsapp': gerarWhatsapp,
-        'tab-contato': gerarContato,
-        'tab-local': gerarLocalizacao
-    };
-
+    // ===== EVENTOS =====
     window.onload = function() {
         toggleSenhaWifi();
 
@@ -792,7 +986,18 @@
         });
 
         document.querySelectorAll('.tab-content').forEach(tab => {
-            const gerar = GERADORES[tab.id];
+            const geradores = {
+                'tab-site': gerarSite,
+                'tab-wifi': gerarWifi,
+                'tab-texto': gerarTexto,
+                'tab-email': gerarEmail,
+                'tab-telefone': gerarTelefone,
+                'tab-sms': gerarSms,
+                'tab-whatsapp': gerarWhatsapp,
+                'tab-contato': gerarContato,
+                'tab-local': gerarLocalizacao
+            };
+            const gerar = geradores[tab.id];
             if (!gerar) return;
             tab.querySelectorAll('input, select').forEach(el => {
                 el.addEventListener('keypress', e => {
