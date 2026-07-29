@@ -973,29 +973,7 @@ document.getElementById('eventoPreviewLocal').textContent = local || '(local nã
 preview.style.display = 'block';
 }
 
-// ===== FUNÇÃO CRC16 CORRIGIDA PARA PIX =====
-function calcularCRC16Corrigido(payload) {
-  // Remove o "6304" do final
-  const dados = payload.slice(0, -4);
-  let crc = 0xFFFF;
-  
-  for (let i = 0; i < dados.length; i++) {
-    crc ^= dados.charCodeAt(i) << 8;
-    for (let j = 0; j < 8; j++) {
-      if (crc & 0x8000) {
-        crc = (crc << 1) ^ 0x1021;
-      } else {
-        crc <<= 1;
-      }
-      crc &= 0xFFFF;
-    }
-  }
-  
-  const crcHex = crc.toString(16).toUpperCase().padStart(4, '0');
-  return crcHex;
-}
-
-// ===== PIX =====
+// ===== PIX (CORRETO COM BIBLIOTECA) =====
 function gerarPix() {
   const chave = document.getElementById('pix-chave').value.trim();
   const valor = document.getElementById('pix-valor').value.trim();
@@ -1003,116 +981,48 @@ function gerarPix() {
   const descricao = document.getElementById('pix-descricao').value.trim();
 
   if (!chave) {
-    mostrarModal('⚠️', 'Campo Vazio', 'Digite a chave Pix (CPF, e-mail, telefone ou chave aleatória).', 'warning');
+    mostrarModal('⚠️', 'Campo Vazio', 'Digite a chave Pix.', 'warning');
     return;
   }
 
-  // Remove espaços e formata valor
-  const valorLimpo = valor.replace(',', '.').replace(/[^0-9.]/g, '');
-  const valorNumerico = parseFloat(valorLimpo) || 0;
+  // Carrega a biblioteca qrcode-pix
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/qrcode-pix@1.0.4/dist/qrcode-pix.min.js';
+  
+  script.onload = function() {
+    try {
+      // Gera o payload PIX corretamente
+      const payload = QRCodePix.generate({
+        pixKey: chave,
+        amount: parseFloat(valor.replace(',', '.')) || 0,
+        description: descricao || '',
+        transactionId: id || '',
+        merchantName: 'QR Code PIX',
+        merchantCity: 'Brasil'
+      });
 
-  // ===== CONSTRUÇÃO CORRETA DO PAYLOAD PIX =====
-  let payload = '';
-  
-  // 1. Payload Format Indicator (campo 00) - fixo
-  payload += '000201';
-  
-  // 2. Merchant Account Information (campo 26)
-  //    Subcampos:
-  //    - 00: GUI (BR.GOV.BCB.PIX)
-  //    - 01: Chave (tipo + chave)
-  let gui = 'BR.GOV.BCB.PIX';
-  let pixInfo = '00' + String(gui.length).padStart(2, '0') + gui;
-  
-  // Determina o tipo da chave
-  const chaveLimpa = chave.replace(/\s/g, '');
-  let tipoChave = '';
-  
-  if (chaveLimpa.includes('@')) {
-    tipoChave = '02'; // E-mail
-  } else if (/^\d{11}$/.test(chaveLimpa.replace(/\D/g, ''))) {
-    tipoChave = '01'; // CPF (11 dígitos)
-  } else if (/^\d{14}$/.test(chaveLimpa.replace(/\D/g, ''))) {
-    tipoChave = '03'; // CNPJ (14 dígitos)
-  } else if (/^\+?\d{10,15}$/.test(chaveLimpa.replace(/\D/g, ''))) {
-    tipoChave = '04'; // Telefone
-  } else {
-    tipoChave = '00'; // Aleatória
-  }
-  
-  // Adiciona a chave no formato: tipo + tamanho + chave
-  const chaveDados = tipoChave + String(chaveLimpa.length).padStart(2, '0') + chaveLimpa;
-  pixInfo += chaveDados;
-  
-  // Se tiver descrição, adiciona como subcampo 05 no campo 26
-  if (descricao) {
-    const descLimpa = descricao.substring(0, 50);
-    pixInfo += '05' + String(descLimpa.length).padStart(2, '0') + descLimpa;
-  }
-  
-  // Monta o campo 26 completo
-  payload += '26' + String(pixInfo.length).padStart(2, '0') + pixInfo;
-  
-  // 3. Merchant Category Code (campo 52) - fixo 0000
-  payload += '52040000';
-  
-  // 4. Transaction Currency (campo 53) - 986 = BRL
-  payload += '5303986';
-  
-  // 5. Transaction Amount (campo 54) - se tiver valor
-  if (valorNumerico > 0) {
-    const valorFormatado = valorNumerico.toFixed(2);
-    payload += '54' + String(valorFormatado.length).padStart(2, '0') + valorFormatado;
-  }
-  
-  // 6. Country Code (campo 58) - BR
-  payload += '5802BR';
-  
-  // 7. Merchant Name (campo 59) - nome do recebedor
-  const nomeMerchant = 'QR Code PIX';
-  payload += '59' + String(nomeMerchant.length).padStart(2, '0') + nomeMerchant;
-  
-  // 8. Merchant City (campo 60) - cidade
-  const cidade = 'Brasil';
-  payload += '60' + String(cidade.length).padStart(2, '0') + cidade;
-  
-  // 9. Additional Data Field Template (campo 62)
-  let additionalData = '';
-  
-  // Identificador do pedido (subcampo 05)
-  if (id) {
-    const idLimpo = id.replace(/\s/g, '').substring(0, 25);
-    additionalData += '05' + String(idLimpo.length).padStart(2, '0') + idLimpo;
-  }
-  
-  // Adiciona campo 62 se tiver dados adicionais
-  if (additionalData) {
-    payload += '62' + String(additionalData.length).padStart(2, '0') + additionalData;
-  }
-  
-  // 10. CRC16 (campo 63) - placeholder
-  payload += '6304';
-  
-  // 11. Calcula CRC16
-  const crc = calcularCRC16Corrigido(payload);
-  payload = payload.slice(0, -4) + crc;
+      // Renderiza o QR Code
+      renderizarQR('qrcode-pix', payload);
+      document.getElementById('infoPix').textContent = `PIX: ${chave}`;
 
-  // Renderiza o QR Code
-  renderizarQR('qrcode-pix', payload);
+      // Preview
+      const preview = document.getElementById('pixPreview');
+      document.getElementById('pixPreviewChave').textContent = chave;
+      document.getElementById('pixPreviewValor').textContent = valor ? `R$ ${valor}` : 'R$ 0,00';
+      document.getElementById('pixPreviewDescricao').textContent = descricao || '—';
+      preview.style.display = 'block';
+      
+      console.log('Payload PIX gerado:', payload);
+    } catch (erro) {
+      mostrarModal('❌', 'Erro', 'Erro ao gerar PIX: ' + erro.message, 'danger');
+    }
+  };
   
-  // Mostra info
-  const infoValor = valorNumerico > 0 ? ` | R$ ${valorNumerico.toFixed(2)}` : '';
-  document.getElementById('infoPix').textContent = `PIX: ${chave}${infoValor}`;
-
-  // Preview
-  const preview = document.getElementById('pixPreview');
-  document.getElementById('pixPreviewChave').textContent = chave;
-  document.getElementById('pixPreviewValor').textContent = valorNumerico > 0 ? `R$ ${valorNumerico.toFixed(2).replace('.', ',')}` : 'R$ 0,00';
-  document.getElementById('pixPreviewDescricao').textContent = descricao || '—';
-  preview.style.display = 'block';
+  script.onerror = function() {
+    mostrarModal('❌', 'Erro', 'Não foi possível carregar a biblioteca PIX.', 'danger');
+  };
   
-  // Mostra o payload no console para debug
-  console.log('Payload PIX gerado:', payload);
+  document.head.appendChild(script);
 }
 
 // ===== WHATSAPP =====
