@@ -194,7 +194,7 @@ margin-top: 4px;
 .btn-gerar.texto { background: #6c757d; }
 .btn-gerar.email { background: #d64545; }
 .btn-gerar.evento { background: #e74c3c; }
-.btn-gerar.pix { background: #32BCAD; }
+.btn-gerar.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
 .btn-gerar.whatsapp { background: #25d366; }
 .btn-gerar.contato { background: #6f42c1; }
 .btn-gerar.local { background: #fd7e14; }
@@ -434,19 +434,6 @@ margin-bottom: 10px;
 display: block;
 }
 
-/* ===== PIX PREVIEW ===== */
-.info-pix-legivel {
-font-size: 12px;
-color: #555;
-background: #f8f9fa;
-padding: 8px 12px;
-border-radius: 8px;
-margin-bottom: 8px;
-text-align: left;
-border-left: 3px solid #32BCAD;
-}
-
-.info-pix-legivel strong { color: #32BCAD; }
 </style>
 </head>
 <body>
@@ -464,7 +451,7 @@ border-left: 3px solid #32BCAD;
 <button class="tab-btn" data-tab="tab-texto" onclick="trocarAba(this, 'tab-texto')">📝 Texto</button>
 <button class="tab-btn" data-tab="tab-email" onclick="trocarAba(this, 'tab-email')">📧 E-mail</button>
 <button class="tab-btn" data-tab="tab-evento" onclick="trocarAba(this, 'tab-evento')">📅 Evento</button>
-<button class="tab-btn" data-tab="tab-pix" onclick="trocarAba(this, 'tab-pix')">💰 PIX</button>
+<button class="tab-btn" data-tab="tab-instagram" onclick="trocarAba(this, 'tab-instagram')">📷 Instagram</button>
 <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">🟢 WhatsApp</button>
 <button class="tab-btn" data-tab="tab-contato" onclick="trocarAba(this, 'tab-contato')">👤 Contato</button>
 <button class="tab-btn" data-tab="tab-local" onclick="trocarAba(this, 'tab-local')">📍 Local</button>
@@ -578,37 +565,15 @@ border-left: 3px solid #32BCAD;
 <div class="info">📅 <span id="infoEvento">Nenhum QR Code gerado</span></div>
 </div>
 
-<!-- ===== PIX ===== -->
-<div id="tab-pix" class="tab-content">
+<!-- ===== INSTAGRAM ===== -->
+<div id="tab-instagram" class="tab-content">
 <div class="campo">
-<label>💰 Chave Pix</label>
-<input type="text" id="pix-chave" placeholder="CPF, e-mail, telefone ou chave aleatória">
+<label>📷 Usuário do Instagram</label>
+<input type="text" id="instagram-usuario" placeholder="Ex: joseaugustobaron">
 </div>
-<div class="linha-dupla">
-<div class="campo">
-<label>💵 Valor (opcional)</label>
-<input type="text" id="pix-valor" placeholder="Ex: 50,00">
-</div>
-<div class="campo">
-<label>🏷️ Identificador (opcional)</label>
-<input type="text" id="pix-id" placeholder="Ex: PEDIDO-123">
-</div>
-</div>
-<div class="campo">
-<label>📝 Descrição (opcional)</label>
-<input type="text" id="pix-descricao" placeholder="Ex: Pagamento da fatura">
-</div>
-<button class="btn-gerar pix" onclick="gerarPix()">Gerar QR Code PIX</button>
-
-<div class="info-pix-legivel" id="pixPreview" style="display:none;">
-💰 <strong>PIX</strong><br>
-🔑 Chave: <span id="pixPreviewChave"></span><br>
-💵 Valor: <span id="pixPreviewValor">R$ 0,00</span><br>
-📝 Descrição: <span id="pixPreviewDescricao">—</span>
-</div>
-
-<div class="qr-wrapper"><div id="qrcode-pix"></div></div>
-<div class="info">💰 <span id="infoPix">Nenhum QR Code gerado</span></div>
+<button class="btn-gerar instagram" onclick="gerarInstagram()">Gerar QR Code</button>
+<div class="qr-wrapper"><div id="qrcode-instagram"></div></div>
+<div class="info">📷 <span id="infoInstagram">Nenhum QR Code gerado</span></div>
 </div>
 
 <!-- ===== WHATSAPP ===== -->
@@ -727,7 +692,7 @@ const ABAS = {
 'tab-texto':     { qrId: 'qrcode-texto',     infoId: 'infoTexto',     arquivo: 'qrcode-texto.png' },
 'tab-email':     { qrId: 'qrcode-email',     infoId: 'infoEmail',     arquivo: 'qrcode-email.png' },
 'tab-evento':    { qrId: 'qrcode-evento',    infoId: 'infoEvento',    arquivo: 'qrcode-evento.png' },
-'tab-pix':       { qrId: 'qrcode-pix',       infoId: 'infoPix',       arquivo: 'qrcode-pix.png' },
+'tab-instagram': { qrId: 'qrcode-instagram', infoId: 'infoInstagram', arquivo: 'qrcode-instagram.png' },
 'tab-whatsapp':  { qrId: 'qrcode-whatsapp',  infoId: 'infoWhatsapp',  arquivo: 'qrcode-whatsapp.png' },
 'tab-contato':   { qrId: 'qrcode-contato',   infoId: 'infoContato',   arquivo: 'qrcode-contato.png' },
 'tab-local':     { qrId: 'qrcode-local',     infoId: 'infoLocal',     arquivo: 'qrcode-local.png' }
@@ -973,119 +938,24 @@ document.getElementById('eventoPreviewLocal').textContent = local || '(local nã
 preview.style.display = 'block';
 }
 
-// ===== PIX CORRIGIDO (SEM BIBLIOTECA EXTERNA) =====
-function gerarPix() {
+// ===== INSTAGRAM =====
+function gerarInstagram() {
+let usuario = document.getElementById('instagram-usuario').value.trim();
 
-    const chaveOriginal = document.getElementById('pix-chave').value.trim();
-    const valor = document.getElementById('pix-valor').value.trim();
-    const id = document.getElementById('pix-id').value.trim() || "***";
-    const descricao = document.getElementById('pix-descricao').value.trim();
-
-    if (!chaveOriginal) {
-        mostrarModal('⚠️','Campo vazio','Digite a chave PIX.','warning');
-        return;
-    }
-
-    function campo(id, valor){
-        return id + String(valor.length).padStart(2,'0') + valor;
-    }
-
-    // Corrige a chave automaticamente
-    let chave = chaveOriginal;
-
-    // email
-    if (chave.includes("@")) {
-        chave = chave.toLowerCase();
-
-    // telefone
-    } else if (chave.startsWith("+")) {
-        chave = chave.replace(/[^\d+]/g,'');
-
-    // CPF/CNPJ
-    } else if (/^[\d.\-\/()\s]+$/.test(chave)) {
-        chave = chave.replace(/\D/g,'');
-
-    // chave aleatória
-    } else {
-        chave = chave.trim();
-    }
-
-    let merchant =
-        campo("00","BR.GOV.BCB.PIX") +
-        campo("01",chave);
-
-    if (descricao) {
-        merchant += campo("02",descricao.substring(0,99));
-    }
-
-    let payload = "";
-
-    payload += campo("00","01");
-    payload += campo("01","11");
-    payload += campo("26",merchant);
-    payload += campo("52","0000");
-    payload += campo("53","986");
-
-    if (valor) {
-
-        const v = parseFloat(
-            valor
-                .replace(/\./g,"")
-                .replace(",",".")
-        );
-
-        if (!isNaN(v) && v > 0) {
-            payload += campo("54",v.toFixed(2));
-        }
-    }
-
-    payload += campo("58","BR");
-    payload += campo("59","QR CODE PIX");
-    payload += campo("60","BRASIL");
-
-    payload += campo(
-        "62",
-        campo("05",id.substring(0,25))
-    );
-
-    payload += "6304";
-    payload += calcularCRC16(payload);
-
-    console.log(payload);
-
-    renderizarQR("qrcode-pix", payload);
-
-    document.getElementById("infoPix").textContent = chaveOriginal;
-    document.getElementById("pixPreviewChave").textContent = chaveOriginal;
-    document.getElementById("pixPreviewValor").textContent =
-        valor
-            ? "R$ " + parseFloat(valor.replace(",",".")).toFixed(2).replace(".",",")
-            : "R$ 0,00";
-
-    document.getElementById("pixPreviewDescricao").textContent =
-        descricao || "—";
-
-    document.getElementById("pixPreview").style.display = "block";
+if (!usuario) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite o usuário do Instagram.', 'warning');
+return;
 }
 
-// ===== FUNÇÃO CRC16 =====
-function calcularCRC16(payload) {
-  const dados = payload.slice(0, -4);
-  let crc = 0xFFFF;
-  
-  for (let i = 0; i < dados.length; i++) {
-    crc ^= dados.charCodeAt(i) << 8;
-    for (let j = 0; j < 8; j++) {
-      if (crc & 0x8000) {
-        crc = (crc << 1) ^ 0x1021;
-      } else {
-        crc <<= 1;
-      }
-      crc &= 0xFFFF;
-    }
-  }
-  
-  return crc.toString(16).toUpperCase().padStart(4, '0');
+// Aceita @usuario, usuario, ou link completo já colado
+usuario = usuario.replace(/^@/, '');
+usuario = usuario.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '');
+usuario = usuario.replace(/\/+$/, '');
+
+const url = `https://www.instagram.com/${usuario}/`;
+
+renderizarQR('qrcode-instagram', url);
+document.getElementById('infoInstagram').textContent = url;
 }
 
 // ===== WHATSAPP =====
@@ -1222,12 +1092,8 @@ document.getElementById('evento-local').value = '';
 document.getElementById('evento-descricao').value = '';
 document.getElementById('eventoPreview').style.display = 'none';
 
-// PIX
-document.getElementById('pix-chave').value = '';
-document.getElementById('pix-valor').value = '';
-document.getElementById('pix-id').value = '';
-document.getElementById('pix-descricao').value = '';
-document.getElementById('pixPreview').style.display = 'none';
+// INSTAGRAM
+document.getElementById('instagram-usuario').value = '';
 
 document.getElementById('whats-numero').value = '';
 document.getElementById('whats-mensagem').value = '';
@@ -1285,7 +1151,7 @@ const geradores = {
 'tab-texto': gerarTexto,
 'tab-email': gerarEmail,
 'tab-evento': gerarEvento,
-'tab-pix': gerarPix,
+'tab-instagram': gerarInstagram,
 'tab-whatsapp': gerarWhatsapp,
 'tab-contato': gerarContato,
 'tab-local': gerarLocalizacao
