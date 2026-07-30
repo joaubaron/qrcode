@@ -34,7 +34,6 @@ box-sizing: border-box;
 body {
 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 background: #ffffff;
-/* FUNDO BRANCO PURO */
 min-height: 100vh;
 padding: 20px;
 max-width: 600px;
@@ -54,7 +53,6 @@ font-size: 13px;
 margin-bottom: 16px;
 }
 
-/* MENU DIRETO NO FUNDO BRANCO - SEM CAIXA */
 .tabs {
 display: grid;
 grid-template-columns: repeat(3, 1fr);
@@ -340,22 +338,62 @@ background: #BBF7D0;
 color: #166534;
 }
 
-/* ===== LEITOR DE QR CODE ===== */
+/* ===== MODAL LEITOR ===== */
+.leitor-modal-overlay {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.9);
+z-index: 10000;
+align-items: center;
+justify-content: center;
+animation: fadeInModal 0.25s ease;
+}
+
+.leitor-modal-overlay.ativo {
+display: flex;
+}
+
+.leitor-modal-box {
+background: white;
+border-radius: 20px;
+padding: 20px;
+max-width: 500px;
+width: 90%;
+position: relative;
+}
+
+.leitor-modal-close {
+position: absolute;
+top: 10px;
+right: 15px;
+background: none;
+border: none;
+font-size: 28px;
+cursor: pointer;
+color: #666;
+}
+
+.leitor-modal-title {
+margin-bottom: 15px;
+color: #1a2a6c;
+font-size: 18px;
+}
+
 .leitor-video-wrapper {
 background: #111827;
 border-radius: 12px;
-margin: 14px 0;
-min-height: 260px;
 overflow: hidden;
+min-height: 300px;
 position: relative;
-display: flex;
-align-items: center;
-justify-content: center;
 }
 
 .leitor-video-wrapper video {
 width: 100%;
-height: 260px;
+height: 300px;
 object-fit: cover;
 display: none;
 }
@@ -365,18 +403,95 @@ color: #9ca3af;
 font-size: 13px;
 text-align: center;
 padding: 20px;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
 }
 
-.info-leitor-legivel {
-font-size: 13px;
-color: #1f2937;
+.leitor-resultado {
+display: none;
+margin-top: 15px;
+padding: 12px;
 background: #f3f4f6;
-padding: 10px 12px;
 border-radius: 8px;
-margin: 10px 0;
-text-align: left;
 border-left: 3px solid #1a2a6c;
 word-break: break-all;
+}
+
+.leitor-resultado strong {
+color: #1a2a6c;
+}
+
+.leitor-botoes {
+display: flex;
+gap: 8px;
+margin-top: 15px;
+}
+
+.leitor-botoes button {
+flex: 1;
+padding: 12px;
+border: none;
+border-radius: 10px;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+}
+
+.btn-leitor-camera {
+background: #1a2a6c;
+color: white;
+}
+
+.btn-leitor-copiar {
+display: none;
+background: #BFDBFE;
+color: #1E3A8A;
+}
+
+.btn-leitor-abrir {
+display: none;
+background: #BBF7D0;
+color: #166534;
+}
+
+.btn-leitor-fechar {
+width: 100%;
+margin-top: 10px;
+padding: 10px;
+border: none;
+border-radius: 10px;
+background: #e5e7eb;
+color: #374151;
+font-weight: 600;
+cursor: pointer;
+}
+
+.offline-banner {
+display: none;
+background: #fef9e7;
+color: #7d6608;
+padding: 6px 12px;
+border-radius: 8px;
+font-size: 12px;
+font-weight: 500;
+margin-bottom: 10px;
+border: 1px solid #fdebd0;
+}
+.offline-banner.visible {
+display: block;
+}
+
+.share-label {
+font-size: 13px;
+font-weight: 600;
+color: #1a2a6c;
+background: #f0f2ff;
+padding: 4px 12px;
+border-radius: 6px;
+display: inline-block;
+margin-bottom: 6px;
 }
 
 .footer {
@@ -522,39 +637,10 @@ color: white;
 background: #6b7280;
 color: white;
 }
-
-/* Offline banner */
-.offline-banner {
-display: none;
-background: #fef9e7;
-color: #7d6608;
-padding: 6px 12px;
-border-radius: 8px;
-font-size: 12px;
-font-weight: 500;
-margin-bottom: 10px;
-border: 1px solid #fdebd0;
-}
-.offline-banner.visible {
-display: block;
-}
-
-/* Mapa de nomes das abas para compartilhamento */
-.share-label {
-font-size: 13px;
-font-weight: 600;
-color: #1a2a6c;
-background: #f0f2ff;
-padding: 4px 12px;
-border-radius: 6px;
-display: inline-block;
-margin-bottom: 6px;
-}
 </style>
 </head>
 <body>
 
-<!-- SEM CONTAINER - TUDO DIRETO NO FUNDO BRANCO -->
 <div class="offline-banner" id="offlineBanner">📶 Modo Offline - Funcionando normalmente</div>
 
 <h1>📱 Gerador de QR Code</h1>
@@ -740,34 +826,37 @@ margin-bottom: 6px;
 <div class="info">📍 <span id="infoLocal">Nenhum QR Code gerado</span></div>
 </div>
 
-<!-- ===== LEITOR DE QR CODE ===== -->
-<div id="tab-leitor" class="tab-content">
-<div class="leitor-video-wrapper">
-<video id="leitorVideo" autoplay playsinline muted></video>
-<div class="leitor-placeholder" id="leitorPlaceholder">📷 Toque em "Iniciar Câmera" para ler um QR Code</div>
-</div>
-
-<button class="btn-gerar" id="btnLeitorToggle" onclick="toggleLeitor()" style="background:#1a2a6c;">📷 Iniciar Câmera</button>
-
-<div class="info-leitor-legivel" id="leitorResultado" style="display:none;">
-<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>
-</div>
-
-<div class="actions" id="leitorAcoes" style="display:none;">
-<button class="btn-download" onclick="copiarResultadoLeitor()">📋 Copiar</button>
-<button class="btn-compartilhar" onclick="abrirResultadoLeitor()">🔗 Abrir</button>
-</div>
-</div>
-
 <!-- Botões em 2 colunas -->
 <div class="actions">
 <button class="btn-download" onclick="baixarPNG()">💾 Salvar</button>
 <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
 <button class="btn-compartilhar" onclick="compartilharQR()">🔗 Compartilhar</button>
-<button class="btn-leitor" onclick="irParaLeitor()">🔍 Leitor</button>
+<button class="btn-leitor" onclick="abrirLeitor()">🔍 Leitor</button>
 </div>
 
 <div class="footer">QR Code estático — nunca expira</div>
+
+<!-- ===== MODAL LEITOR ===== -->
+<div class="leitor-modal-overlay" id="leitorModal">
+<div class="leitor-modal-box">
+<button class="leitor-modal-close" onclick="fecharLeitor()">✕</button>
+<h3 class="leitor-modal-title">📷 Leitor de QR Code</h3>
+<div class="leitor-video-wrapper">
+<video id="leitorVideo" autoplay playsinline muted></video>
+<div class="leitor-placeholder" id="leitorPlaceholder">📷 Toque em "Iniciar Câmera" para ler um QR Code</div>
+</div>
+<div class="leitor-resultado" id="leitorResultado">
+<strong>📄 Resultado:</strong><br>
+<span id="leitorTexto"></span>
+</div>
+<div class="leitor-botoes">
+<button class="btn-leitor-camera" id="btnLeitorToggle" onclick="toggleLeitor()">📷 Iniciar Câmera</button>
+<button class="btn-leitor-copiar" id="btnCopiarLeitor" onclick="copiarLeitor()">📋 Copiar</button>
+<button class="btn-leitor-abrir" id="btnAbrirLeitor" onclick="abrirLeitorResultado()">🔗 Abrir</button>
+</div>
+<button class="btn-leitor-fechar" onclick="fecharLeitor()">Fechar</button>
+</div>
+</div>
 
 <!-- ===== MODAL ===== -->
 <div class="modal-overlay" id="modalOverlay">
@@ -1011,10 +1100,11 @@ console.error('Erro ao carregar dados:', e);
 let abaAtual = 'tab-site';
 let senhaAntiga = '12345678';
 
-// ===== ESTADO DO LEITOR DE QR CODE =====
+// ===== ESTADO DO LEITOR =====
 let leitorStream = null;
 let leitorAnimId = null;
 let leitorAtivo = false;
+let leitorResultado = null;
 
 const ABAS = {
 'tab-site': { qrId: 'qrcode-site', infoId: 'infoSite', arquivo: 'qrcode-site.png' },
@@ -1034,21 +1124,16 @@ document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ati
 document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('ativo'));
 document.getElementById(id).classList.add('ativo');
 botao.classList.add('ativo');
-
-// A aba Leitor não gera QR Code pra baixar/compartilhar, então esconde a barra de ações.
-// Também desliga a câmera se o usuário sair da aba sem clicar em "Parar".
-const actionsBar = document.querySelector('body > .actions');
-if (actionsBar) actionsBar.style.display = (id === 'tab-leitor') ? 'none' : 'grid';
-if (id !== 'tab-leitor') pararLeitor();
-
 salvarDados();
 }
 
-function irParaLeitor() {
-const btn = document.querySelector('.tab-btn[data-tab="tab-leitor"]');
-if (btn) {
-trocarAba(btn, 'tab-leitor');
+function abrirLeitor() {
+document.getElementById('leitorModal').classList.add('ativo');
 }
+
+function fecharLeitor() {
+pararLeitor();
+document.getElementById('leitorModal').classList.remove('ativo');
 }
 
 function validarUrl() {
@@ -1130,8 +1215,7 @@ qrObj.make();
 
 const canvasExibicao = document.createElement('canvas');
 const tamanhoExibicao = 200;
-// Aumentei o tamanho para acomodar a borda
-const tamanhoComBorda = tamanhoExibicao + 20; // 10px de borda de cada lado
+const tamanhoComBorda = tamanhoExibicao + 20;
 canvasExibicao.width = tamanhoComBorda;
 canvasExibicao.height = tamanhoComBorda;
 canvasExibicao.style.width = tamanhoComBorda + 'px';
@@ -1141,12 +1225,10 @@ const ctx = canvasExibicao.getContext('2d');
 const cells = qrObj.getModuleCount();
 const cellSize = tamanhoExibicao / cells;
 
-// Borda branca
 ctx.imageSmoothingEnabled = false;
 ctx.fillStyle = '#ffffff';
 ctx.fillRect(0, 0, tamanhoComBorda, tamanhoComBorda);
 
-// QR Code centralizado
 const offset = 10;
 ctx.fillStyle = '#ffffff';
 ctx.fillRect(offset, offset, tamanhoExibicao, tamanhoExibicao);
@@ -1404,7 +1486,6 @@ qrObj.addData(String(texto));
 qrObj.make();
 
 const cells = qrObj.getModuleCount();
-// Margem de 10% para a borda
 const margemPercentual = 0.10;
 const margemPixels = Math.floor(tamanho * margemPercentual);
 const tamanhoQR = tamanho - (margemPixels * 2);
@@ -1416,12 +1497,9 @@ canvasDownload.height = tamanho;
 const ctx = canvasDownload.getContext('2d');
 
 ctx.imageSmoothingEnabled = false;
-
-// Fundo branco total
 ctx.fillStyle = '#ffffff';
 ctx.fillRect(0, 0, tamanho, tamanho);
 
-// QR Code centralizado
 ctx.fillStyle = '#000000';
 for (let row = 0; row < cells; row++) {
 for (let col = 0; col < cells; col++) {
@@ -1464,7 +1542,7 @@ link.href = canvasDownload.toDataURL('image/png');
 link.click();
 }
 
-// ===== COMPARTILHAR (com label) =====
+// ===== COMPARTILHAR =====
 function compartilharQR() {
 const config = ABAS[abaAtual];
 if (!config) return;
@@ -1473,14 +1551,10 @@ const canvasDownload = gerarCanvasQR();
 if (!canvasDownload) return;
 
 const dataUrl = canvasDownload.toDataURL('image/png');
-
-// Obtém o label da aba atual
 const nomeAba = LABELS_ABAS[abaAtual] || 'QR Code';
 const emoji = NOMES_ABAS[abaAtual] || '📱';
 
-// Tenta compartilhar com texto descritivo
 if (navigator.share) {
-// Primeiro tenta compartilhar como arquivo + texto
 const blob = dataURLtoBlob(dataUrl);
 const file = new File([blob], config.arquivo, { type: 'image/png' });
 
@@ -1491,7 +1565,6 @@ title: `${emoji} ${nomeAba}`,
 text: `📱 QR Code: ${nomeAba}\n\nEscaneie este QR Code para acessar o conteúdo.`
 }).catch((err) => {
 if (err.name !== 'AbortError') {
-// Fallback: tenta compartilhar apenas o texto
 compartilharComoTexto(nomeAba, emoji);
 }
 });
@@ -1499,7 +1572,6 @@ return;
 }
 }
 
-// Fallback: tenta compartilhar como texto + dataURL
 compartilharComoTexto(nomeAba, emoji);
 }
 
@@ -1512,7 +1584,6 @@ if (!canvasDownload) return;
 
 const dataUrl = canvasDownload.toDataURL('image/png');
 
-// Obtém o conteúdo descritivo
 let conteudoDesc = '';
 switch (abaAtual) {
 case 'tab-site':
@@ -1555,12 +1626,10 @@ text: textoSha,
 url: dataUrl
 }).catch((err) => {
 if (err.name !== 'AbortError') {
-// Se falhar, tenta baixar
 baixarPNG();
 }
 });
 } else {
-// Fallback: baixar a imagem
 baixarPNG();
 }
 }
@@ -1607,7 +1676,7 @@ localStorage.removeItem('qrAppDados');
 mostrarModal('🗑️', 'Tudo Limpo!', 'Todos os campos e QR Codes foram limpos.', 'info');
 }
 
-// ===== LEITOR DE QR CODE =====
+// ===== LEITOR DE QR CODE (MODAL) =====
 function carregarJsQR() {
 return new Promise((resolve, reject) => {
 if (typeof jsQR !== 'undefined') {
@@ -1634,6 +1703,14 @@ async function iniciarLeitor() {
 const video = document.getElementById('leitorVideo');
 const placeholder = document.getElementById('leitorPlaceholder');
 const btn = document.getElementById('btnLeitorToggle');
+const resultadoDiv = document.getElementById('leitorResultado');
+
+// Limpa resultado anterior
+resultadoDiv.style.display = 'none';
+document.getElementById('leitorTexto').textContent = '';
+document.getElementById('btnCopiarLeitor').style.display = 'none';
+document.getElementById('btnAbrirLeitor').style.display = 'none';
+leitorResultado = null;
 
 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
 mostrarModal('❌', 'Não Suportado', 'Seu navegador não permite acesso à câmera.', 'danger');
@@ -1645,7 +1722,7 @@ leitorStream = await navigator.mediaDevices.getUserMedia({
 video: { facingMode: 'environment' }
 });
 } catch (e) {
-mostrarModal('⚠️', 'Câmera Bloqueada', 'Permita o acesso à câmera nas configurações do navegador para ler QR Codes.', 'warning');
+mostrarModal('⚠️', 'Câmera Bloqueada', 'Permita o acesso à câmera nas configurações do navegador.', 'warning');
 return;
 }
 
@@ -1654,9 +1731,6 @@ video.style.display = 'block';
 placeholder.style.display = 'none';
 btn.textContent = '⏹️ Parar Câmera';
 leitorAtivo = true;
-
-document.getElementById('leitorResultado').style.display = 'none';
-document.getElementById('leitorAcoes').style.display = 'none';
 
 try {
 await video.play();
@@ -1677,7 +1751,7 @@ try {
 await carregarJsQR();
 } catch (e) {
 pararLeitor();
-mostrarModal('❌', 'Erro', 'Não foi possível carregar o leitor de QR Code. Verifique sua conexão.', 'danger');
+mostrarModal('❌', 'Erro', 'Não foi possível carregar o leitor de QR Code.', 'danger');
 return;
 }
 }
@@ -1711,8 +1785,17 @@ if (resultado) textoLido = resultado.data;
 }
 
 if (textoLido) {
-mostrarResultadoLeitor(textoLido);
+leitorResultado = textoLido;
+document.getElementById('leitorTexto').textContent = textoLido;
+resultadoDiv.style.display = 'block';
+document.getElementById('btnCopiarLeitor').style.display = 'block';
+
+if (textoLido.startsWith('http://') || textoLido.startsWith('https://')) {
+document.getElementById('btnAbrirLeitor').style.display = 'block';
+}
+
 pararLeitor();
+btn.textContent = '📷 Iniciar Câmera';
 return;
 }
 
@@ -1749,34 +1832,26 @@ const btn = document.getElementById('btnLeitorToggle');
 if (btn) btn.textContent = '📷 Iniciar Câmera';
 }
 
-function mostrarResultadoLeitor(texto) {
-document.getElementById('leitorTexto').textContent = texto;
-document.getElementById('leitorResultado').style.display = 'block';
-document.getElementById('leitorAcoes').style.display = 'grid';
-}
-
-function copiarResultadoLeitor() {
-const texto = document.getElementById('leitorTexto').textContent;
-if (!texto) return;
+function copiarLeitor() {
+if (!leitorResultado) return;
 
 if (!navigator.clipboard) {
 mostrarModal('⚠️', 'Não Suportado', 'Copiar automaticamente não é suportado neste navegador.', 'warning');
 return;
 }
 
-navigator.clipboard.writeText(texto).then(() => {
+navigator.clipboard.writeText(leitorResultado).then(() => {
 mostrarModal('✅', 'Copiado!', 'O conteúdo foi copiado para a área de transferência.', 'success');
 }).catch(() => {
 mostrarModal('⚠️', 'Erro', 'Não foi possível copiar automaticamente.', 'warning');
 });
 }
 
-function abrirResultadoLeitor() {
-const texto = document.getElementById('leitorTexto').textContent;
-if (!texto) return;
+function abrirLeitorResultado() {
+if (!leitorResultado) return;
 
-if (texto.startsWith('http://') || texto.startsWith('https://')) {
-window.open(texto, '_blank');
+if (leitorResultado.startsWith('http://') || leitorResultado.startsWith('https://')) {
+window.open(leitorResultado, '_blank');
 } else {
 mostrarModal('ℹ️', 'Não é um Link', 'O conteúdo lido não é uma URL para abrir no navegador.', 'info');
 }
