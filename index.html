@@ -1342,6 +1342,15 @@
       mostrarModal('🗑️', 'Tudo Limpo!', 'Todos os campos e QR Codes foram limpos.', 'info');
     }
 
+    // ===== PWA: REGISTRO DO SERVICE WORKER =====
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => console.log('Service Worker registrado:', reg.scope))
+          .catch((err) => console.error('Falha ao registrar Service Worker:', err));
+      });
+    }
+
     // ===== PWA: INSTALL PROMPT =====
     let deferredPrompt;
 
