@@ -655,7 +655,7 @@
   <div class="offline-banner" id="offlineBanner">📶 Modo Offline - Funcionando normalmente</div>
 
   <h1>📱 Gerador de QR Code</h1>
-  <p class="subtitle" id="subtitle">Escolha uma opção abaixo e gere seu QR Code</p>
+  <p class="subtitle" id="subtitle"></p>
 
   <div class="tabs">
     <button class="tab-btn ativo" data-tab="tab-site" onclick="trocarAba(this, 'tab-site')">🌐 Site</button>
@@ -1162,20 +1162,14 @@
       return container;
     }
 
-    function trocarAba(botao, id) {
-      abaAtual = id;
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ativo'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('ativo'));
-      document.getElementById(id).classList.add('ativo');
-      botao.classList.add('ativo');
-
-      // Atualiza o subtítulo conforme a aba
-      const subtitle = document.getElementById('subtitle');
-      const nomeAba = LABELS_ABAS[id] || 'QR Code';
-      subtitle.textContent = `📌 ${nomeAba} — Preencha os campos e clique em "Gerar"`;
-
-      salvarDados();
-    }
+  function trocarAba(botao, id) {
+  abaAtual = id;
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ativo'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('ativo'));
+  document.getElementById(id).classList.add('ativo');
+  botao.classList.add('ativo');
+  salvarDados();
+}
 
     function abrirLeitor() {
       document.getElementById('leitorModal').classList.add('ativo');
@@ -2429,55 +2423,50 @@
 
     // ===== EVENTOS =====
     window.onload = function() {
-      toggleSenhaWifi();
+  toggleSenhaWifi();
 
-      if (!navigator.onLine) {
-        document.getElementById('offlineBanner').classList.add('visible');
-      }
+  if (!navigator.onLine) {
+    document.getElementById('offlineBanner').classList.add('visible');
+  }
 
-      const agora = new Date();
-      const dataAtual = agora.toISOString().split('T')[0];
-      const horaAtual = agora.toTimeString().slice(0, 5);
-      document.getElementById('evento-data').value = dataAtual;
-      document.getElementById('evento-hora').value = horaAtual;
+  const agora = new Date();
+  const dataAtual = agora.toISOString().split('T')[0];
+  const horaAtual = agora.toTimeString().slice(0, 5);
+  document.getElementById('evento-data').value = dataAtual;
+  document.getElementById('evento-hora').value = horaAtual;
 
-      carregarDados();
+  carregarDados();
 
-      // Define subtítulo inicial
-      const subtitle = document.getElementById('subtitle');
-      const nomeAba = LABELS_ABAS[abaAtual] || 'QR Code';
-      subtitle.textContent = `📌 ${nomeAba} — Preencha os campos e clique em "Gerar"`;
+  document.getElementById('linkInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') gerarSite();
+  });
 
-      document.getElementById('linkInput').addEventListener('keypress', e => {
-        if (e.key === 'Enter') gerarSite();
-      });
-
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        const geradores = {
-          'tab-site': gerarSite,
-          'tab-wifi': gerarWifi,
-          'tab-texto': gerarTexto,
-          'tab-email': gerarEmail,
-          'tab-evento': gerarEvento,
-          'tab-instagram': gerarInstagram,
-          'tab-whatsapp': gerarWhatsapp,
-          'tab-contato': gerarContato,
-          'tab-local': gerarLocalizacao
-        };
-        const gerar = geradores[tab.id];
-        if (!gerar) return;
-        tab.querySelectorAll('input, select').forEach(el => {
-          el.addEventListener('keypress', e => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              gerar();
-            }
-          });
-        });
-      });
-
-      window.addEventListener('beforeunload', salvarDados);
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    const geradores = {
+      'tab-site': gerarSite,
+      'tab-wifi': gerarWifi,
+      'tab-texto': gerarTexto,
+      'tab-email': gerarEmail,
+      'tab-evento': gerarEvento,
+      'tab-instagram': gerarInstagram,
+      'tab-whatsapp': gerarWhatsapp,
+      'tab-contato': gerarContato,
+      'tab-local': gerarLocalizacao
     };
+    const gerar = geradores[tab.id];
+    if (!gerar) return;
+    tab.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('keypress', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          gerar();
+        }
+      });
+    });
+  });
+
+  window.addEventListener('beforeunload', salvarDados);
+};
   </script>
 </body>
 </html>
