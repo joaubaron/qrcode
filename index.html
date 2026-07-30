@@ -299,13 +299,13 @@
     }
 
     .actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-top: 8px;
     }
 
     .actions button {
-      flex: 1;
       padding: 10px;
       border: none;
       border-radius: 10px;
@@ -332,6 +332,11 @@
 
     .btn-compartilhar {
       background: #1a2a6c;
+      color: white;
+    }
+
+    .btn-leitor {
+      background: #6b7280;
       color: white;
     }
 
@@ -532,6 +537,18 @@
     }
     .offline-banner.visible {
       display: block;
+    }
+
+    /* Mapa de nomes das abas para compartilhamento */
+    .share-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a2a6c;
+      background: #f0f2ff;
+      padding: 4px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 6px;
     }
   </style>
 </head>
@@ -743,10 +760,12 @@
     </div>
   </div>
 
+  <!-- Botões em 2 colunas -->
   <div class="actions">
     <button class="btn-download" onclick="baixarPNG()">⬇️ Baixar PNG</button>
-    <button class="btn-compartilhar" onclick="compartilharQR()">📤 Compartilhar</button>
     <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
+    <button class="btn-compartilhar" onclick="compartilharQR()">📤 Compartilhar</button>
+    <button class="btn-leitor" onclick="irParaLeitor()">🎥 Leitor</button>
   </div>
 
   <div class="footer">QR Code estático — nunca expira</div>
@@ -771,8 +790,6 @@
         'danger'
       );
     } else if (typeof qrcode.stringToBytesFuncs !== 'undefined' && qrcode.stringToBytesFuncs['UTF-8']) {
-      // Corrige a codificação para UTF-8, garantindo que acentos e caracteres
-      // especiais (ex: "Reunião", "Endereço") sejam lidos corretamente ao escanear.
       qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
     }
 
@@ -803,6 +820,31 @@
         fecharModal();
       }
     });
+
+    // ===== MAPA DE NOMES DAS ABAS =====
+    const NOMES_ABAS = {
+      'tab-site': '🌐 Site',
+      'tab-wifi': '📶 Wi-Fi',
+      'tab-texto': '📝 Texto',
+      'tab-email': '📧 E-mail',
+      'tab-evento': '📅 Evento',
+      'tab-instagram': '@ Instagram',
+      'tab-whatsapp': '🟢 WhatsApp',
+      'tab-contato': '👤 Contato',
+      'tab-local': '📍 Local'
+    };
+
+    const LABELS_ABAS = {
+      'tab-site': '🔗 Link',
+      'tab-wifi': '📶 Rede Wi-Fi',
+      'tab-texto': '📝 Texto',
+      'tab-email': '📧 E-mail',
+      'tab-evento': '📅 Evento/Agenda',
+      'tab-instagram': '@ Instagram',
+      'tab-whatsapp': '🟢 WhatsApp',
+      'tab-contato': '👤 Contato',
+      'tab-local': '📍 Localização'
+    };
 
     // ===== FUNÇÕES DE LOCALSTORAGE =====
     function salvarDados() {
@@ -994,13 +1036,20 @@
       document.getElementById(id).classList.add('ativo');
       botao.classList.add('ativo');
 
-      // A aba Leitor não gera QR Code pra baixar/compartilhar, então some com essa barra.
+      // A aba Leitor não gera QR Code pra baixar/compartilhar, então esconde a barra de ações.
       // Também desliga a câmera se o usuário sair da aba sem clicar em "Parar".
       const actionsBar = document.querySelector('body > .actions');
-      if (actionsBar) actionsBar.style.display = (id === 'tab-leitor') ? 'none' : 'flex';
+      if (actionsBar) actionsBar.style.display = (id === 'tab-leitor') ? 'none' : 'grid';
       if (id !== 'tab-leitor') pararLeitor();
 
       salvarDados();
+    }
+
+    function irParaLeitor() {
+      const btn = document.querySelector('.tab-btn[data-tab="tab-leitor"]');
+      if (btn) {
+        trocarAba(btn, 'tab-leitor');
+      }
     }
 
     function validarUrl() {
@@ -1220,8 +1269,6 @@
         return;
       }
 
-      // Usa um Date de verdade para somar 1h ao horário de início, evitando
-      // valores inválidos (ex: 24:30) quando o evento cruza a virada da hora/dia.
       const [ano, mes, dia] = data.split('-').map(Number);
       const [h, m] = hora.split(':').map(Number);
       const inicio = new Date(ano, mes - 1, dia, h, m, 0);
@@ -1322,7 +1369,7 @@
       salvarDados();
     }
 
-    // ===== GERAÇÃO DO CANVAS EM ALTA RESOLUÇÃO (usado por baixar E compartilhar) =====
+    // ===== GERAÇÃO DO CANVAS EM ALTA RESOLUÇÃO =====
     function gerarCanvasQR(tamanho = 1024) {
       const config = ABAS[abaAtual];
       if (!config) return null;
@@ -1375,8 +1422,6 @@
       return canvasDownload;
     }
 
-    // Converte um dataURL em Blob de forma SÍNCRONA (sem fetch), pra não perder
-    // o "user activation" do clique antes de chamar navigator.share().
     function dataURLtoBlob(dataURL) {
       const [header, base64] = dataURL.split(',');
       const mime = header.match(/:(.*?);/)[1];
@@ -1402,7 +1447,7 @@
       link.click();
     }
 
-    // ===== COMPARTILHAR (Web Share API) =====
+    // ===== COMPARTILHAR (com label) =====
     function compartilharQR() {
       const config = ABAS[abaAtual];
       if (!config) return;
@@ -1412,32 +1457,95 @@
 
       const dataUrl = canvasDownload.toDataURL('image/png');
 
-      // Sem suporte a compartilhamento de arquivo (ex: a maioria dos navegadores desktop)
-      // Baixa normalmente como fallback.
-      if (!navigator.share || !navigator.canShare) {
-        baixarPNG();
-        return;
-      }
+      // Obtém o label da aba atual
+      const nomeAba = LABELS_ABAS[abaAtual] || 'QR Code';
+      const emoji = NOMES_ABAS[abaAtual] || '📱';
 
-      const blob = dataURLtoBlob(dataUrl);
-      const file = new File([blob], config.arquivo, { type: 'image/png' });
+      // Tenta compartilhar com texto descritivo
+      if (navigator.share) {
+        // Primeiro tenta compartilhar como arquivo + texto
+        const blob = dataURLtoBlob(dataUrl);
+        const file = new File([blob], config.arquivo, { type: 'image/png' });
 
-      if (!navigator.canShare({ files: [file] })) {
-        baixarPNG();
-        return;
-      }
-
-      navigator.share({
-        files: [file],
-        title: 'QR Code',
-        text: 'QR Code gerado pelo app'
-      }).catch((err) => {
-        // AbortError = o usuário cancelou o compartilhamento, não é erro de verdade.
-        if (err.name !== 'AbortError') {
-          console.error('Erro ao compartilhar:', err);
-          mostrarModal('❌', 'Erro ao Compartilhar', 'Não foi possível compartilhar o QR Code.', 'danger');
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({
+            files: [file],
+            title: `${emoji} ${nomeAba}`,
+            text: `📱 QR Code: ${nomeAba}\n\nEscaneie este QR Code para acessar o conteúdo.`
+          }).catch((err) => {
+            if (err.name !== 'AbortError') {
+              // Fallback: tenta compartilhar apenas o texto
+              compartilharComoTexto(nomeAba, emoji);
+            }
+          });
+          return;
         }
-      });
+      }
+
+      // Fallback: tenta compartilhar como texto + dataURL
+      compartilharComoTexto(nomeAba, emoji);
+    }
+
+    function compartilharComoTexto(nomeAba, emoji) {
+      const config = ABAS[abaAtual];
+      if (!config) return;
+
+      const canvasDownload = gerarCanvasQR();
+      if (!canvasDownload) return;
+
+      const dataUrl = canvasDownload.toDataURL('image/png');
+
+      // Obtém o conteúdo descritivo
+      let conteudoDesc = '';
+      switch (abaAtual) {
+        case 'tab-site':
+          conteudoDesc = document.getElementById('linkInput').value.trim() || 'Site';
+          break;
+        case 'tab-wifi':
+          conteudoDesc = `Rede: ${document.getElementById('wifi-ssid').value.trim() || 'Wi-Fi'}`;
+          break;
+        case 'tab-texto':
+          conteudoDesc = document.getElementById('texto-conteudo').value.trim() || 'Texto';
+          break;
+        case 'tab-email':
+          conteudoDesc = `E-mail: ${document.getElementById('email-destino').value.trim() || 'Destinatário'}`;
+          break;
+        case 'tab-evento':
+          conteudoDesc = document.getElementById('evento-titulo').value.trim() || 'Evento';
+          break;
+        case 'tab-instagram':
+          conteudoDesc = `@${document.getElementById('instagram-usuario').value.trim() || 'Instagram'}`;
+          break;
+        case 'tab-whatsapp':
+          conteudoDesc = `WhatsApp: ${document.getElementById('whats-numero').value.trim() || 'Número'}`;
+          break;
+        case 'tab-contato':
+          conteudoDesc = document.getElementById('contato-nome').value.trim() || 'Contato';
+          break;
+        case 'tab-local':
+          conteudoDesc = document.getElementById('local-endereco').value.trim() || 'Localização';
+          break;
+        default:
+          conteudoDesc = 'QR Code';
+      }
+
+      const textoSha = `${emoji} ${nomeAba}\n\n📌 ${conteudoDesc}\n\n🔗 Escaneie o QR Code para acessar o conteúdo.`;
+
+      if (navigator.share) {
+        navigator.share({
+          title: `${emoji} ${nomeAba}`,
+          text: textoSha,
+          url: dataUrl
+        }).catch((err) => {
+          if (err.name !== 'AbortError') {
+            // Se falhar, tenta baixar
+            baixarPNG();
+          }
+        });
+      } else {
+        // Fallback: baixar a imagem
+        baixarPNG();
+      }
     }
 
     // ===== LIMPAR =====
@@ -1482,11 +1590,7 @@
       mostrarModal('🗑️', 'Tudo Limpo!', 'Todos os campos e QR Codes foram limpos.', 'info');
     }
 
-    // ===== LEITOR DE QR CODE (CÂMERA) =====
-    // Tenta usar o BarcodeDetector nativo do navegador (rápido, sem dependência extra,
-    // suporte bom no Chrome/Android). Se não existir, carrega o jsQR via CDN como
-    // fallback (ex: desktop/Firefox), do mesmo jeito que a lib de geração de QR já
-    // funciona neste app: busca no CDN, com aviso silencioso se falhar.
+    // ===== LEITOR DE QR CODE =====
     function carregarJsQR() {
       return new Promise((resolve, reject) => {
         if (typeof jsQR !== 'undefined') {
@@ -1539,9 +1643,7 @@
 
       try {
         await video.play();
-      } catch (e) {
-        // alguns navegadores já iniciam a reprodução sozinhos; segue o jogo
-      }
+      } catch (e) {}
 
       const usaBarcodeDetector = 'BarcodeDetector' in window;
       let detector = null;
@@ -1584,9 +1686,7 @@
           try {
             const codigos = await detector.detect(leitorCanvas);
             if (codigos.length > 0) textoLido = codigos[0].rawValue;
-          } catch (e) {
-            // segue tentando no próximo frame
-          }
+          } catch (e) {}
         } else if (typeof jsQR !== 'undefined') {
           const imageData = leitorCtx.getImageData(0, 0, leitorCanvas.width, leitorCanvas.height);
           const resultado = jsQR(imageData.data, imageData.width, imageData.height);
@@ -1635,7 +1735,7 @@
     function mostrarResultadoLeitor(texto) {
       document.getElementById('leitorTexto').textContent = texto;
       document.getElementById('leitorResultado').style.display = 'block';
-      document.getElementById('leitorAcoes').style.display = 'flex';
+      document.getElementById('leitorAcoes').style.display = 'grid';
     }
 
     function copiarResultadoLeitor() {
