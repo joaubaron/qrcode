@@ -421,22 +421,6 @@
       color: #1a2a6c;
     }
 
-    .leitor-resultado details {
-      margin-top: 8px;
-    }
-
-    .leitor-resultado details summary {
-      font-size: 12px;
-      color: #9ca3af;
-      cursor: pointer;
-    }
-
-    .leitor-resultado details span {
-      font-size: 11px;
-      word-break: break-all;
-      color: #6b7280;
-    }
-
     .leitor-botoes {
       display: flex;
       gap: 8px;
@@ -2163,7 +2147,7 @@
       resultadoDiv.style.display = 'block';
       resultadoDiv.style.borderLeftColor = tipo.cor;
 
-      // Monta a mensagem de resultado (sem duplicação de "Mostrar conteúdo completo")
+      // Monta a mensagem de resultado (sem "Mostrar conteúdo completo")
       let html = `<strong>${tipo.icone} ${tipo.label} Detectado!</strong><br>`;
 
       // Mostra dados específicos baseado no tipo
@@ -2182,30 +2166,30 @@
           </span>
           <span style="font-size:12px;color:#6f42c1;font-weight:600;display:block;margin-top:6px;">
             💡 Clique em "Salvar Contato" para baixar o arquivo .vcf
-          </span><br>`;
+          </span>`;
             break;
           case 'wifi':
             const { ssid, tipo: seg, senha } = tipo.dados;
             html += `<span style="font-size:13px;color:#6b7280;">
             Rede: ${ssid || 'N/A'}<br>
             Segurança: ${seg || 'N/A'}<br>
-            Senha: ${senha ? '••••••••' : 'Sem senha'}<br>
-          </span><br>`;
+            Senha: ${senha ? '••••••••' : 'Sem senha'}
+          </span>`;
             break;
           case 'whatsapp':
             html += `<span style="font-size:13px;color:#6b7280;">
-            Número: ${tipo.dados.numero || 'N/A'}<br>
-          </span><br>`;
+            Número: ${tipo.dados.numero || 'N/A'}
+          </span>`;
             break;
           case 'instagram':
             html += `<span style="font-size:13px;color:#6b7280;">
-            @${tipo.dados.usuario || 'N/A'}<br>
-          </span><br>`;
+            @${tipo.dados.usuario || 'N/A'}
+          </span>`;
             break;
           case 'maps':
             html += `<span style="font-size:13px;color:#6b7280;">
-            📍 ${tipo.dados.endereco || 'N/A'}<br>
-          </span><br>`;
+            📍 ${tipo.dados.endereco || 'N/A'}
+          </span>`;
             break;
           case 'evento':
             const { titulo, data, local } = tipo.dados;
@@ -2213,7 +2197,7 @@
             ${titulo || 'Evento'}<br>
             ${data ? `📆 ${data}` : ''}<br>
             ${local ? `📍 ${local}` : ''}
-          </span><br>`;
+          </span>`;
             break;
           case 'email':
             const { email: dest, assunto, mensagem } = tipo.dados;
@@ -2221,39 +2205,33 @@
             Para: ${dest || 'N/A'}<br>
             Assunto: ${assunto || 'N/A'}<br>
             ${mensagem ? `Mensagem: ${mensagem.substring(0, 50)}${mensagem.length > 50 ? '...' : ''}` : ''}
-          </span><br>`;
+          </span>`;
             break;
           case 'telefone':
             html += `<span style="font-size:13px;color:#6b7280;">
-            📞 ${tipo.dados.numero || 'N/A'}<br>
-          </span><br>`;
+            📞 ${tipo.dados.numero || 'N/A'}
+          </span>`;
             break;
           case 'sms':
             html += `<span style="font-size:13px;color:#6b7280;">
             Para: ${tipo.dados.numero || 'N/A'}<br>
             ${tipo.dados.mensagem ? `Mensagem: ${tipo.dados.mensagem.substring(0, 50)}${tipo.dados.mensagem.length > 50 ? '...' : ''}` : ''}
-          </span><br>`;
+          </span>`;
             break;
           case 'geo':
             html += `<span style="font-size:13px;color:#6b7280;">
-            🌍 Coordenadas: ${tipo.dados.coordenadas || 'N/A'}<br>
-          </span><br>`;
+            🌍 Coordenadas: ${tipo.dados.coordenadas || 'N/A'}
+          </span>`;
             break;
           case 'url':
             html += `<span style="font-size:13px;color:#6b7280;">
-            ${tipo.dados.url || 'N/A'}<br>
-          </span><br>`;
+            ${tipo.dados.url || 'N/A'}
+          </span>`;
             break;
           default:
-            html += `<span style="font-size:13px;color:#6b7280;">Conteúdo detectado com sucesso!</span><br>`;
+            html += `<span style="font-size:13px;color:#6b7280;">Conteúdo detectado com sucesso!</span>`;
         }
       }
-
-      // Adiciona o texto completo (apenas uma vez)
-      html += `<details>
-      <summary style="font-size:12px;color:#9ca3af;cursor:pointer;">📄 Mostrar conteúdo completo</summary>
-      <span style="font-size:11px;word-break:break-all;color:#6b7280;display:block;margin-top:4px;">${textoLido}</span>
-    </details>`;
 
       resultadoDiv.innerHTML = html;
 
