@@ -655,7 +655,7 @@
   <div class="offline-banner" id="offlineBanner">📶 Modo Offline - Funcionando normalmente</div>
 
   <h1>📱 Gerador de QR Code</h1>
-  <p class="subtitle"></p>
+  <p class="subtitle" id="subtitle">Escolha uma opção abaixo e gere seu QR Code</p>
 
   <div class="tabs">
     <button class="tab-btn ativo" data-tab="tab-site" onclick="trocarAba(this, 'tab-site')">🌐 Site</button>
@@ -860,11 +860,7 @@
         <strong>📄 Resultado:</strong><br>
         <span id="leitorTexto"></span>
       </div>
-      <div class="leitor-botoes" id="leitorBotoes">
-        <button class="btn-leitor-camera" id="btnLeitorToggle" onclick="toggleLeitor()">🔍 Iniciar</button>
-        <button class="btn-leitor-copiar" id="btnCopiarLeitor" onclick="copiarLeitor()">📋 Copiar</button>
-        <button class="btn-leitor-abrir" id="btnAbrirLeitor" onclick="abrirLeitorResultado()">🔗 Abrir</button>
-      </div>
+      <div class="leitor-botoes" id="leitorBotoes"></div>
       <button class="btn-leitor-fechar" onclick="fecharLeitor()">Fechar</button>
     </div>
   </div>
@@ -1116,7 +1112,7 @@
     let leitorAnimId = null;
     let leitorAtivo = false;
     let leitorResultado = null;
-    let leitorResultadoProcessado = false; // Flag para saber se já processou um resultado
+    let leitorResultadoProcessado = false;
 
     const ABAS = {
       'tab-site': { qrId: 'qrcode-site', infoId: 'infoSite', arquivo: 'qrcode-site.png' },
@@ -1130,12 +1126,54 @@
       'tab-local': { qrId: 'qrcode-local', infoId: 'infoLocal', arquivo: 'qrcode-local.png' }
     };
 
+    // ===== FUNÇÃO CENTRALIZADA PARA CRIAR BOTÕES DO LEITOR =====
+    function criarBotoesLeitor(mostrarIniciar = true, textoIniciar = '🔍 Iniciar', aoClicarIniciar = null) {
+      const container = document.getElementById('leitorBotoes');
+      container.innerHTML = '';
+
+      // Botão Iniciar/Parar (opcional)
+      if (mostrarIniciar) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-leitor-camera';
+        btn.id = 'btnLeitorToggle';
+        btn.textContent = textoIniciar;
+        btn.onclick = aoClicarIniciar || function() { toggleLeitor(); };
+        container.appendChild(btn);
+      }
+
+      // Botão Copiar (sempre presente, mas oculto inicialmente)
+      const btnCopiar = document.createElement('button');
+      btnCopiar.className = 'btn-leitor-copiar';
+      btnCopiar.id = 'btnCopiarLeitor';
+      btnCopiar.textContent = '📋 Copiar';
+      btnCopiar.style.display = 'none';
+      btnCopiar.onclick = copiarLeitor;
+      container.appendChild(btnCopiar);
+
+      // Botão Abrir (sempre presente, mas oculto inicialmente)
+      const btnAbrir = document.createElement('button');
+      btnAbrir.className = 'btn-leitor-abrir';
+      btnAbrir.id = 'btnAbrirLeitor';
+      btnAbrir.textContent = '🔗 Abrir';
+      btnAbrir.style.display = 'none';
+      btnAbrir.onclick = abrirLeitorResultado;
+      container.appendChild(btnAbrir);
+
+      return container;
+    }
+
     function trocarAba(botao, id) {
       abaAtual = id;
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ativo'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('ativo'));
       document.getElementById(id).classList.add('ativo');
       botao.classList.add('ativo');
+
+      // Atualiza o subtítulo conforme a aba
+      const subtitle = document.getElementById('subtitle');
+      const nomeAba = LABELS_ABAS[id] || 'QR Code';
+      subtitle.textContent = `📌 ${nomeAba} — Preencha os campos e clique em "Gerar"`;
+
       salvarDados();
     }
 
@@ -1144,41 +1182,16 @@
       // Reset do leitor ao abrir
       pararLeitor();
       leitorResultadoProcessado = false;
-      const btn = document.getElementById('btnLeitorToggle');
-      btn.textContent = '🔍 Iniciar';
+      leitorResultado = null;
+
+      // Usa a função centralizada para criar os botões
+      criarBotoesLeitor(true, '🔍 Iniciar', function() { toggleLeitor(); });
+
+      // Mostra placeholder, esconde resultado
       document.getElementById('leitorPlaceholder').style.display = 'block';
       document.getElementById('leitorResultado').style.display = 'none';
       document.getElementById('leitorResultado').innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
       document.getElementById('leitorTexto').textContent = '';
-      // Esconde botões extras
-      document.getElementById('btnCopiarLeitor').style.display = 'none';
-      document.getElementById('btnAbrirLeitor').style.display = 'none';
-      leitorResultado = null;
-      // Reseta botões para estado inicial (apenas Iniciar)
-      const botoes = document.getElementById('leitorBotoes');
-      botoes.innerHTML = '';
-      const btnIniciar = document.createElement('button');
-      btnIniciar.className = 'btn-leitor-camera';
-      btnIniciar.id = 'btnLeitorToggle';
-      btnIniciar.textContent = '🔍 Iniciar';
-      btnIniciar.onclick = function() { toggleLeitor(); };
-      botoes.appendChild(btnIniciar);
-      // Adiciona novamente os botões Copiar e Abrir (ocultos)
-      const btnCopiar = document.createElement('button');
-      btnCopiar.className = 'btn-leitor-copiar';
-      btnCopiar.id = 'btnCopiarLeitor';
-      btnCopiar.textContent = '📋 Copiar';
-      btnCopiar.style.display = 'none';
-      btnCopiar.onclick = function() { copiarLeitor(); };
-      botoes.appendChild(btnCopiar);
-
-      const btnAbrir = document.createElement('button');
-      btnAbrir.className = 'btn-leitor-abrir';
-      btnAbrir.id = 'btnAbrirLeitor';
-      btnAbrir.textContent = '🔗 Abrir';
-      btnAbrir.style.display = 'none';
-      btnAbrir.onclick = function() { abrirLeitorResultado(); };
-      botoes.appendChild(btnAbrir);
     }
 
     function fecharLeitor() {
@@ -1921,13 +1934,12 @@
       return tipos[0];
     }
 
-    // ===== FUNÇÃO PARA GERAR BOTÕES DE AÇÃO =====
+    // ===== FUNÇÃO PARA GERAR BOTÕES DE AÇÃO DO RESULTADO =====
     function gerarBotoesAcao(tipo, texto) {
-      const botoes = document.getElementById('leitorBotoes');
-      if (!botoes) return;
+      const container = document.getElementById('leitorBotoes');
+      if (!container) return;
 
-      // Limpa todos os botões
-      botoes.innerHTML = '';
+      container.innerHTML = '';
 
       // Define ações baseadas no tipo
       const acoes = {
@@ -2035,8 +2047,6 @@
         }
       };
 
-      // NÃO adiciona o botão Iniciar/Parar aqui - apenas os botões de ação + Ler
-
       // Adiciona botões de ação específicos
       tipo.acoes.forEach(acaoKey => {
         const config = acoes[acaoKey];
@@ -2045,6 +2055,26 @@
         const btn = document.createElement('button');
         btn.textContent = config.texto;
         btn.style.cssText = `
+          flex: 1;
+          min-width: 70px;
+          padding: 10px 6px;
+          border: none;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+          background: ${config.cor};
+          color: ${config.corTexto || 'white'};
+        `;
+        btn.onclick = config.acao;
+        container.appendChild(btn);
+      });
+
+      // Adiciona botão "Ler" (único botão para ler outro QR Code)
+      const btnLerOutro = document.createElement('button');
+      btnLerOutro.textContent = '🔍 Ler';
+      btnLerOutro.style.cssText = `
         flex: 1;
         min-width: 70px;
         padding: 10px 6px;
@@ -2054,74 +2084,29 @@
         font-weight: 600;
         cursor: pointer;
         transition: transform 0.15s ease, box-shadow 0.15s ease;
-        background: ${config.cor};
-        color: ${config.corTexto || 'white'};
+        background: #1a2a6c;
+        color: white;
       `;
-        btn.onclick = config.acao;
-        botoes.appendChild(btn);
-      });
-
-      // Adiciona botão "Ler" (único botão para ler outro QR Code)
-      const btnLerOutro = document.createElement('button');
-      btnLerOutro.textContent = '🔍 Ler';
-      btnLerOutro.style.cssText = `
-      flex: 1;
-      min-width: 70px;
-      padding: 10px 6px;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      background: #1a2a6c;
-      color: white;
-    `;
       btnLerOutro.onclick = function() {
         reiniciarLeitor();
       };
-      botoes.appendChild(btnLerOutro);
+      container.appendChild(btnLerOutro);
     }
 
     // ===== REINICIAR LEITOR =====
     function reiniciarLeitor() {
-      // Para a câmera e limpa o estado
       pararLeitor();
       leitorResultadoProcessado = false;
+      leitorResultado = null;
 
       // Limpa o resultado anterior
       const resultadoDiv = document.getElementById('leitorResultado');
       resultadoDiv.style.display = 'none';
       resultadoDiv.innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
       document.getElementById('leitorTexto').textContent = '';
-      leitorResultado = null;
 
-      // Reseta botões para estado inicial (apenas Iniciar)
-      const botoes = document.getElementById('leitorBotoes');
-      botoes.innerHTML = '';
-      const btnIniciar = document.createElement('button');
-      btnIniciar.className = 'btn-leitor-camera';
-      btnIniciar.id = 'btnLeitorToggle';
-      btnIniciar.textContent = '🔍 Iniciar';
-      btnIniciar.onclick = function() { toggleLeitor(); };
-      botoes.appendChild(btnIniciar);
-
-      // Adiciona novamente os botões Copiar e Abrir (ocultos)
-      const btnCopiar = document.createElement('button');
-      btnCopiar.className = 'btn-leitor-copiar';
-      btnCopiar.id = 'btnCopiarLeitor';
-      btnCopiar.textContent = '📋 Copiar';
-      btnCopiar.style.display = 'none';
-      btnCopiar.onclick = function() { copiarLeitor(); };
-      botoes.appendChild(btnCopiar);
-
-      const btnAbrir = document.createElement('button');
-      btnAbrir.className = 'btn-leitor-abrir';
-      btnAbrir.id = 'btnAbrirLeitor';
-      btnAbrir.textContent = '🔗 Abrir';
-      btnAbrir.style.display = 'none';
-      btnAbrir.onclick = function() { abrirLeitorResultado(); };
-      botoes.appendChild(btnAbrir);
+      // Usa a função centralizada para criar os botões (apenas Iniciar)
+      criarBotoesLeitor(true, '🔍 Iniciar', function() { toggleLeitor(); });
 
       // Volta o placeholder
       const placeholder = document.getElementById('leitorPlaceholder');
@@ -2145,9 +2130,8 @@
       resultadoDiv.style.display = 'block';
       resultadoDiv.style.borderLeftColor = tipo.cor;
 
-      // Monta a mensagem de resultado (sem "Mostrar conteúdo completo")
+      // Monta a mensagem de resultado
       let html = `<strong>${tipo.label} Detectado!</strong><br>`;
-      // Monta let html = `<strong>${tipo.icone} ${tipo.label} Detectado!</strong><br>`;
 
       // Mostra dados específicos baseado no tipo
       if (tipo.dados) {
@@ -2234,7 +2218,7 @@
 
       resultadoDiv.innerHTML = html;
 
-      // Gera os botões de ação (sem o Iniciar, apenas ações + Ler)
+      // Gera os botões de ação
       gerarBotoesAcao(tipo, textoLido);
     }
 
@@ -2256,6 +2240,7 @@
     function toggleLeitor() {
       if (leitorAtivo) {
         pararLeitor();
+        // Atualiza o botão para "Iniciar"
         const btn = document.getElementById('btnLeitorToggle');
         if (btn) btn.textContent = '🔍 Iniciar';
       } else {
@@ -2275,32 +2260,8 @@
       leitorResultado = null;
       leitorResultadoProcessado = false;
 
-      // Reseta botões para estado inicial (apenas Iniciar)
-      const botoes = document.getElementById('leitorBotoes');
-      botoes.innerHTML = '';
-      const btnIniciar = document.createElement('button');
-      btnIniciar.className = 'btn-leitor-camera';
-      btnIniciar.id = 'btnLeitorToggle';
-      btnIniciar.textContent = '⏹️ Parar';
-      btnIniciar.onclick = function() { toggleLeitor(); };
-      botoes.appendChild(btnIniciar);
-
-      // Adiciona novamente os botões Copiar e Abrir (ocultos)
-      const btnCopiar = document.createElement('button');
-      btnCopiar.className = 'btn-leitor-copiar';
-      btnCopiar.id = 'btnCopiarLeitor';
-      btnCopiar.textContent = '📋 Copiar';
-      btnCopiar.style.display = 'none';
-      btnCopiar.onclick = function() { copiarLeitor(); };
-      botoes.appendChild(btnCopiar);
-
-      const btnAbrir = document.createElement('button');
-      btnAbrir.className = 'btn-leitor-abrir';
-      btnAbrir.id = 'btnAbrirLeitor';
-      btnAbrir.textContent = '🔗 Abrir';
-      btnAbrir.style.display = 'none';
-      btnAbrir.onclick = function() { abrirLeitorResultado(); };
-      botoes.appendChild(btnAbrir);
+      // Usa a função centralizada para criar os botões (apenas Iniciar com texto "Parar")
+      criarBotoesLeitor(true, '⏹️ Parar', function() { toggleLeitor(); });
 
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         mostrarModal('❌', 'Não Suportado', 'Seu navegador não permite acesso à câmera.', 'danger');
@@ -2374,9 +2335,7 @@
         }
 
         if (textoLido && !leitorResultadoProcessado) {
-          // Para a câmera antes de processar
           pararLeitor();
-          // Processa o resultado
           processarResultadoLeitor(textoLido);
           return;
         }
@@ -2409,6 +2368,10 @@
 
       const placeholder = document.getElementById('leitorPlaceholder');
       if (placeholder) placeholder.style.display = 'block';
+
+      // Atualiza o botão para "Iniciar" se existir
+      const btn = document.getElementById('btnLeitorToggle');
+      if (btn) btn.textContent = '🔍 Iniciar';
     }
 
     function copiarLeitor() {
@@ -2439,7 +2402,9 @@
     // ===== PWA: REGISTRO DO SERVICE WORKER =====
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/qrcode/sw.js')
+        // Usa caminho relativo para maior flexibilidade
+        const swPath = window.location.pathname.includes('/qrcode/') ? './sw.js' : '/qrcode/sw.js';
+        navigator.serviceWorker.register(swPath)
           .then((reg) => console.log('Service Worker registrado:', reg.scope))
           .catch((err) => console.error('Falha ao registrar Service Worker:', err));
       });
@@ -2477,6 +2442,11 @@
       document.getElementById('evento-hora').value = horaAtual;
 
       carregarDados();
+
+      // Define subtítulo inicial
+      const subtitle = document.getElementById('subtitle');
+      const nomeAba = LABELS_ABAS[abaAtual] || 'QR Code';
+      subtitle.textContent = `📌 ${nomeAba} — Preencha os campos e clique em "Gerar"`;
 
       document.getElementById('linkInput').addEventListener('keypress', e => {
         if (e.key === 'Enter') gerarSite();
