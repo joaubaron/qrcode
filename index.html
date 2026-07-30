@@ -1246,6 +1246,12 @@ return dataFormatada;
 }
 
 function renderizarQR(divId, texto) {
+// CORREÇÃO: Se o texto estiver vazio, não renderiza nada
+if (!texto || texto.trim() === '') {
+document.getElementById(divId).innerHTML = '';
+return;
+}
+
 const qr = document.getElementById(divId);
 qr.innerHTML = "";
 
@@ -1594,36 +1600,7 @@ const dataUrl = canvasDownload.toDataURL('image/png');
 const nomeAba = LABELS_ABAS[abaAtual] || 'QR Code';
 const emoji = NOMES_ABAS[abaAtual] || '📱';
 
-if (navigator.share) {
-const blob = dataURLtoBlob(dataUrl);
-const file = new File([blob], config.arquivo, { type: 'image/png' });
-
-if (navigator.canShare && navigator.canShare({ files: [file] })) {
-navigator.share({
-files: [file],
-title: `${emoji} ${nomeAba}`,
-text: `📱 QR Code: ${nomeAba}\n\nEscaneie este QR Code para acessar o conteúdo.`
-}).catch((err) => {
-if (err.name !== 'AbortError') {
-compartilharComoTexto(nomeAba, emoji);
-}
-});
-return;
-}
-}
-
-compartilharComoTexto(nomeAba, emoji);
-}
-
-function compartilharComoTexto(nomeAba, emoji) {
-const config = ABAS[abaAtual];
-if (!config) return;
-
-const canvasDownload = gerarCanvasQR();
-if (!canvasDownload) return;
-
-const dataUrl = canvasDownload.toDataURL('image/png');
-
+// Gera o texto descritivo (sem "oi", apenas uma descrição útil)
 let conteudoDesc = '';
 switch (abaAtual) {
 case 'tab-site':
@@ -1651,27 +1628,51 @@ case 'tab-contato':
 conteudoDesc = document.getElementById('contato-nome').value.trim() || 'Contato';
 break;
 case 'tab-local':
-conteudoDesc = document.getElementById('local-endereco').value.trim() || 'Localização';
+conteudoDesc = document.getElementById('local-endereco').value.trim() || 'Localização'; 
 break;
 default:
 conteudoDesc = 'QR Code';
 }
 
-const textoSha = `${emoji} ${nomeAba}\n\n📌 ${conteudoDesc}\n\n🔗 Escaneie o QR Code para acessar o conteúdo.`;
+const textoSha = `${emoji} ${nomeAba}\n\n📌 ${conteudoDesc}\n\n🔗 Escaneie este QR Code.`;
 
+// SEMPRE TENTA COMPARTILHAR COMO ARQUIVO PRIMEIRO
+if (navigator.share) {
+// 1. Tenta compartilhar como arquivo (o mais confiável)
+const blob = dataURLtoBlob(dataUrl);
+const file = new File([blob], config.arquivo, { type: 'image/png' });
+
+if (navigator.canShare && navigator.canShare({ files: [file] })) {
+navigator.share({
+files: [file],
+title: `${emoji} ${nomeAba}`,
+text: textoSha // Usado como descrição, não como mensagem principal
+}).catch((err) => {
+// Se falhar (exceto se o usuário cancelar), baixa o PNG.
+// NUNCA chama a função de texto puro aqui, para evitar "oi".
+if (err.name !== 'AbortError') {
+baixarPNG();
+}
+});
+return;
+}
+
+// 2. Se o navegador não suporta compartilhar arquivo, tenta compartilhar só o texto + imagem (sem URL base64)
 if (navigator.share) {
 navigator.share({
 title: `${emoji} ${nomeAba}`,
-text: textoSha,
-url: dataUrl
+text: textoSha
 }).catch((err) => {
 if (err.name !== 'AbortError') {
 baixarPNG();
 }
 });
-} else {
-baixarPNG();
+return;
 }
+}
+
+// 3. Se nada funcionar (ou se não tiver suporte nativo), baixa o PNG
+baixarPNG();
 }
 
 // ===== LIMPAR =====
