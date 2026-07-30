@@ -843,14 +843,14 @@ color: white;
 <h3 class="leitor-modal-title">📷 Leitor de QR Code</h3>
 <div class="leitor-video-wrapper">
 <video id="leitorVideo" autoplay playsinline muted></video>
-<div class="leitor-placeholder" id="leitorPlaceholder">📷 Toque em "Iniciar Câmera" para ler um QR Code</div>
+<div class="leitor-placeholder" id="leitorPlaceholder">🔍 Toque em "Abrir Câmera" para ler um QR Code</div>
 </div>
 <div class="leitor-resultado" id="leitorResultado">
 <strong>📄 Resultado:</strong><br>
 <span id="leitorTexto"></span>
 </div>
 <div class="leitor-botoes">
-<button class="btn-leitor-camera" id="btnLeitorToggle" onclick="toggleLeitor()">📷 Iniciar Câmera</button>
+<button class="btn-leitor-camera" id="btnLeitorToggle" onclick="toggleLeitor()">🔍 Abrir Câmera</button>
 <button class="btn-leitor-copiar" id="btnCopiarLeitor" onclick="copiarLeitor()">📋 Copiar</button>
 <button class="btn-leitor-abrir" id="btnAbrirLeitor" onclick="abrirLeitorResultado()">🔗 Abrir</button>
 </div>
@@ -1795,7 +1795,7 @@ document.getElementById('btnAbrirLeitor').style.display = 'block';
 }
 
 pararLeitor();
-btn.textContent = '📷 Iniciar Câmera';
+btn.textContent = '🔍 Iniciar Câmera';
 return;
 }
 
@@ -1829,7 +1829,7 @@ const placeholder = document.getElementById('leitorPlaceholder');
 if (placeholder) placeholder.style.display = 'block';
 
 const btn = document.getElementById('btnLeitorToggle');
-if (btn) btn.textContent = '📷 Iniciar Câmera';
+if (btn) btn.textContent = '🔍 Iniciar Câmera';
 }
 
 function copiarLeitor() {
