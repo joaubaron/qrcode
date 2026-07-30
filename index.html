@@ -212,7 +212,7 @@
       background: #e74c3c;
     }
     .btn-gerar.instagram {
-      background: #c13584;
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
     }
     .btn-gerar.whatsapp {
       background: #25d366;
@@ -328,6 +328,50 @@
     .btn-limpar {
       background: #f3f4f6;
       color: #4b5563;
+    }
+
+    .btn-compartilhar {
+      background: #1a2a6c;
+      color: white;
+    }
+
+    /* ===== LEITOR DE QR CODE ===== */
+    .leitor-video-wrapper {
+      background: #111827;
+      border-radius: 12px;
+      margin: 14px 0;
+      min-height: 260px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .leitor-video-wrapper video {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      display: none;
+    }
+
+    .leitor-placeholder {
+      color: #9ca3af;
+      font-size: 13px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .info-leitor-legivel {
+      font-size: 13px;
+      color: #1f2937;
+      background: #f3f4f6;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin: 10px 0;
+      text-align: left;
+      border-left: 3px solid #1a2a6c;
+      word-break: break-all;
     }
 
     .footer {
@@ -506,9 +550,10 @@
     <button class="tab-btn" data-tab="tab-email" onclick="trocarAba(this, 'tab-email')">📧 E-mail</button>
     <button class="tab-btn" data-tab="tab-evento" onclick="trocarAba(this, 'tab-evento')">📅 Evento</button>
     <button class="tab-btn" data-tab="tab-instagram" onclick="trocarAba(this, 'tab-instagram')">@ Instagram</button>
-    <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">💬 WhatsApp</button>
+    <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">🟢 WhatsApp</button>
     <button class="tab-btn" data-tab="tab-contato" onclick="trocarAba(this, 'tab-contato')">👤 Contato</button>
     <button class="tab-btn" data-tab="tab-local" onclick="trocarAba(this, 'tab-local')">📍 Local</button>
+    <button class="tab-btn" data-tab="tab-leitor" onclick="trocarAba(this, 'tab-leitor')">🎥 Leitor</button>
   </div>
 
   <!-- ===== SITE ===== -->
@@ -633,7 +678,7 @@
   <!-- ===== WHATSAPP ===== -->
   <div id="tab-whatsapp" class="tab-content">
     <div class="campo">
-      <label>💬 Número (com DDI e DDD)</label>
+      <label>🟢 Número (com DDI e DDD)</label>
       <input type="tel" id="whats-numero" placeholder="Ex: 55 47 99999-9999">
     </div>
     <div class="campo">
@@ -642,7 +687,7 @@
     </div>
     <button class="btn-gerar whatsapp" onclick="gerarWhatsapp()">Gerar QR Code</button>
     <div class="qr-wrapper"><div id="qrcode-whatsapp"></div></div>
-    <div class="info">💬 <span id="infoWhatsapp">Nenhum QR Code gerado</span></div>
+    <div class="info">🟢 <span id="infoWhatsapp">Nenhum QR Code gerado</span></div>
   </div>
 
   <!-- ===== CONTATO (vCard COMPLETO) ===== -->
@@ -672,15 +717,35 @@
   <div id="tab-local" class="tab-content">
     <div class="campo">
       <label>📍 Endereço ou local</label>
-      <input type="text" id="local-endereco" placeholder="Ex: Rua Bruno Schreiber 155, Blumenau, SC, Brasil">
+      <input type="text" id="local-endereco" placeholder="Ex: Rua Antônio da Veiga, 140, Blumenau">
     </div>
     <button class="btn-gerar local" onclick="gerarLocalizacao()">Gerar QR Code</button>
     <div class="qr-wrapper"><div id="qrcode-local"></div></div>
     <div class="info">📍 <span id="infoLocal">Nenhum QR Code gerado</span></div>
   </div>
 
+  <!-- ===== LEITOR DE QR CODE ===== -->
+  <div id="tab-leitor" class="tab-content">
+    <div class="leitor-video-wrapper">
+      <video id="leitorVideo" autoplay playsinline muted></video>
+      <div class="leitor-placeholder" id="leitorPlaceholder">📷 Toque em "Iniciar Câmera" para ler um QR Code</div>
+    </div>
+
+    <button class="btn-gerar" id="btnLeitorToggle" onclick="toggleLeitor()" style="background:#1a2a6c;">📷 Iniciar Câmera</button>
+
+    <div class="info-leitor-legivel" id="leitorResultado" style="display:none;">
+      <strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>
+    </div>
+
+    <div class="actions" id="leitorAcoes" style="display:none;">
+      <button class="btn-download" onclick="copiarResultadoLeitor()">📋 Copiar</button>
+      <button class="btn-compartilhar" onclick="abrirResultadoLeitor()">🔗 Abrir</button>
+    </div>
+  </div>
+
   <div class="actions">
     <button class="btn-download" onclick="baixarPNG()">⬇️ Baixar PNG</button>
+    <button class="btn-compartilhar" onclick="compartilharQR()">📤 Compartilhar</button>
     <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
   </div>
 
@@ -905,6 +970,11 @@
     let abaAtual = 'tab-site';
     let senhaAntiga = '12345678';
 
+    // ===== ESTADO DO LEITOR DE QR CODE =====
+    let leitorStream = null;
+    let leitorAnimId = null;
+    let leitorAtivo = false;
+
     const ABAS = {
       'tab-site': { qrId: 'qrcode-site', infoId: 'infoSite', arquivo: 'qrcode-site.png' },
       'tab-wifi': { qrId: 'qrcode-wifi', infoId: 'infoWifi', arquivo: 'qrcode-wifi.png' },
@@ -923,6 +993,13 @@
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('ativo'));
       document.getElementById(id).classList.add('ativo');
       botao.classList.add('ativo');
+
+      // A aba Leitor não gera QR Code pra baixar/compartilhar, então some com essa barra.
+      // Também desliga a câmera se o usuário sair da aba sem clicar em "Parar".
+      const actionsBar = document.querySelector('body > .actions');
+      if (actionsBar) actionsBar.style.display = (id === 'tab-leitor') ? 'none' : 'flex';
+      if (id !== 'tab-leitor') pararLeitor();
+
       salvarDados();
     }
 
@@ -1245,21 +1322,23 @@
       salvarDados();
     }
 
-    // ===== DOWNLOAD =====
-    function baixarPNG() {
+    // ===== GERAÇÃO DO CANVAS EM ALTA RESOLUÇÃO (usado por baixar E compartilhar) =====
+    function gerarCanvasQR(tamanho = 1024) {
       const config = ABAS[abaAtual];
+      if (!config) return null;
+
       const div = document.getElementById(config.qrId);
       const canvasExibicao = div.querySelector('canvas');
 
       if (!canvasExibicao) {
-        mostrarModal('⚠️', 'Nenhum QR Code', 'Gere um QR Code primeiro antes de baixar.', 'warning');
-        return;
+        mostrarModal('⚠️', 'Nenhum QR Code', 'Gere um QR Code primeiro antes de continuar.', 'warning');
+        return null;
       }
 
       const texto = canvasExibicao.dataset.qrData;
       if (!texto) {
         mostrarModal('❌', 'Erro', 'Dados do QR Code não encontrados. Tente gerar novamente.', 'danger');
-        return;
+        return null;
       }
 
       const qrObj = qrcode(0, 'M');
@@ -1267,18 +1346,17 @@
       qrObj.make();
 
       const cells = qrObj.getModuleCount();
-      const tamanhoDownload = 1024;
-      const cellSize = tamanhoDownload / cells;
+      const cellSize = tamanho / cells;
 
       const canvasDownload = document.createElement('canvas');
-      canvasDownload.width = tamanhoDownload;
-      canvasDownload.height = tamanhoDownload;
+      canvasDownload.width = tamanho;
+      canvasDownload.height = tamanho;
       const ctx = canvasDownload.getContext('2d');
 
       ctx.imageSmoothingEnabled = false;
 
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, tamanhoDownload, tamanhoDownload);
+      ctx.fillRect(0, 0, tamanho, tamanho);
 
       ctx.fillStyle = '#000000';
       for (let row = 0; row < cells; row++) {
@@ -1294,10 +1372,72 @@
         }
       }
 
+      return canvasDownload;
+    }
+
+    // Converte um dataURL em Blob de forma SÍNCRONA (sem fetch), pra não perder
+    // o "user activation" do clique antes de chamar navigator.share().
+    function dataURLtoBlob(dataURL) {
+      const [header, base64] = dataURL.split(',');
+      const mime = header.match(/:(.*?);/)[1];
+      const binario = atob(base64);
+      const array = new Uint8Array(binario.length);
+      for (let i = 0; i < binario.length; i++) {
+        array[i] = binario.charCodeAt(i);
+      }
+      return new Blob([array], { type: mime });
+    }
+
+    // ===== DOWNLOAD =====
+    function baixarPNG() {
+      const config = ABAS[abaAtual];
+      if (!config) return;
+
+      const canvasDownload = gerarCanvasQR();
+      if (!canvasDownload) return;
+
       const link = document.createElement('a');
       link.download = config.arquivo;
       link.href = canvasDownload.toDataURL('image/png');
       link.click();
+    }
+
+    // ===== COMPARTILHAR (Web Share API) =====
+    function compartilharQR() {
+      const config = ABAS[abaAtual];
+      if (!config) return;
+
+      const canvasDownload = gerarCanvasQR();
+      if (!canvasDownload) return;
+
+      const dataUrl = canvasDownload.toDataURL('image/png');
+
+      // Sem suporte a compartilhamento de arquivo (ex: a maioria dos navegadores desktop)
+      // Baixa normalmente como fallback.
+      if (!navigator.share || !navigator.canShare) {
+        baixarPNG();
+        return;
+      }
+
+      const blob = dataURLtoBlob(dataUrl);
+      const file = new File([blob], config.arquivo, { type: 'image/png' });
+
+      if (!navigator.canShare({ files: [file] })) {
+        baixarPNG();
+        return;
+      }
+
+      navigator.share({
+        files: [file],
+        title: 'QR Code',
+        text: 'QR Code gerado pelo app'
+      }).catch((err) => {
+        // AbortError = o usuário cancelou o compartilhamento, não é erro de verdade.
+        if (err.name !== 'AbortError') {
+          console.error('Erro ao compartilhar:', err);
+          mostrarModal('❌', 'Erro ao Compartilhar', 'Não foi possível compartilhar o QR Code.', 'danger');
+        }
+      });
     }
 
     // ===== LIMPAR =====
@@ -1340,6 +1480,189 @@
       localStorage.removeItem('qrAppDados');
 
       mostrarModal('🗑️', 'Tudo Limpo!', 'Todos os campos e QR Codes foram limpos.', 'info');
+    }
+
+    // ===== LEITOR DE QR CODE (CÂMERA) =====
+    // Tenta usar o BarcodeDetector nativo do navegador (rápido, sem dependência extra,
+    // suporte bom no Chrome/Android). Se não existir, carrega o jsQR via CDN como
+    // fallback (ex: desktop/Firefox), do mesmo jeito que a lib de geração de QR já
+    // funciona neste app: busca no CDN, com aviso silencioso se falhar.
+    function carregarJsQR() {
+      return new Promise((resolve, reject) => {
+        if (typeof jsQR !== 'undefined') {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Falha ao carregar jsQR'));
+        document.head.appendChild(script);
+      });
+    }
+
+    function toggleLeitor() {
+      if (leitorAtivo) {
+        pararLeitor();
+      } else {
+        iniciarLeitor();
+      }
+    }
+
+    async function iniciarLeitor() {
+      const video = document.getElementById('leitorVideo');
+      const placeholder = document.getElementById('leitorPlaceholder');
+      const btn = document.getElementById('btnLeitorToggle');
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        mostrarModal('❌', 'Não Suportado', 'Seu navegador não permite acesso à câmera.', 'danger');
+        return;
+      }
+
+      try {
+        leitorStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+      } catch (e) {
+        mostrarModal('⚠️', 'Câmera Bloqueada', 'Permita o acesso à câmera nas configurações do navegador para ler QR Codes.', 'warning');
+        return;
+      }
+
+      video.srcObject = leitorStream;
+      video.style.display = 'block';
+      placeholder.style.display = 'none';
+      btn.textContent = '⏹️ Parar Câmera';
+      leitorAtivo = true;
+
+      document.getElementById('leitorResultado').style.display = 'none';
+      document.getElementById('leitorAcoes').style.display = 'none';
+
+      try {
+        await video.play();
+      } catch (e) {
+        // alguns navegadores já iniciam a reprodução sozinhos; segue o jogo
+      }
+
+      const usaBarcodeDetector = 'BarcodeDetector' in window;
+      let detector = null;
+      if (usaBarcodeDetector) {
+        try {
+          detector = new BarcodeDetector({ formats: ['qr_code'] });
+        } catch (e) {
+          detector = null;
+        }
+      }
+
+      if (!detector) {
+        try {
+          await carregarJsQR();
+        } catch (e) {
+          pararLeitor();
+          mostrarModal('❌', 'Erro', 'Não foi possível carregar o leitor de QR Code. Verifique sua conexão.', 'danger');
+          return;
+        }
+      }
+
+      const leitorCanvas = document.createElement('canvas');
+      const leitorCtx = leitorCanvas.getContext('2d', { willReadFrequently: true });
+
+      const lerFrame = async () => {
+        if (!leitorAtivo) return;
+
+        if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+          leitorAnimId = requestAnimationFrame(lerFrame);
+          return;
+        }
+
+        leitorCanvas.width = video.videoWidth;
+        leitorCanvas.height = video.videoHeight;
+        leitorCtx.drawImage(video, 0, 0, leitorCanvas.width, leitorCanvas.height);
+
+        let textoLido = null;
+
+        if (detector) {
+          try {
+            const codigos = await detector.detect(leitorCanvas);
+            if (codigos.length > 0) textoLido = codigos[0].rawValue;
+          } catch (e) {
+            // segue tentando no próximo frame
+          }
+        } else if (typeof jsQR !== 'undefined') {
+          const imageData = leitorCtx.getImageData(0, 0, leitorCanvas.width, leitorCanvas.height);
+          const resultado = jsQR(imageData.data, imageData.width, imageData.height);
+          if (resultado) textoLido = resultado.data;
+        }
+
+        if (textoLido) {
+          mostrarResultadoLeitor(textoLido);
+          pararLeitor();
+          return;
+        }
+
+        leitorAnimId = requestAnimationFrame(lerFrame);
+      };
+
+      leitorAnimId = requestAnimationFrame(lerFrame);
+    }
+
+    function pararLeitor() {
+      leitorAtivo = false;
+
+      if (leitorAnimId) {
+        cancelAnimationFrame(leitorAnimId);
+        leitorAnimId = null;
+      }
+
+      if (leitorStream) {
+        leitorStream.getTracks().forEach(track => track.stop());
+        leitorStream = null;
+      }
+
+      const video = document.getElementById('leitorVideo');
+      if (video) {
+        video.pause();
+        video.srcObject = null;
+        video.style.display = 'none';
+      }
+
+      const placeholder = document.getElementById('leitorPlaceholder');
+      if (placeholder) placeholder.style.display = 'block';
+
+      const btn = document.getElementById('btnLeitorToggle');
+      if (btn) btn.textContent = '📷 Iniciar Câmera';
+    }
+
+    function mostrarResultadoLeitor(texto) {
+      document.getElementById('leitorTexto').textContent = texto;
+      document.getElementById('leitorResultado').style.display = 'block';
+      document.getElementById('leitorAcoes').style.display = 'flex';
+    }
+
+    function copiarResultadoLeitor() {
+      const texto = document.getElementById('leitorTexto').textContent;
+      if (!texto) return;
+
+      if (!navigator.clipboard) {
+        mostrarModal('⚠️', 'Não Suportado', 'Copiar automaticamente não é suportado neste navegador.', 'warning');
+        return;
+      }
+
+      navigator.clipboard.writeText(texto).then(() => {
+        mostrarModal('✅', 'Copiado!', 'O conteúdo foi copiado para a área de transferência.', 'success');
+      }).catch(() => {
+        mostrarModal('⚠️', 'Erro', 'Não foi possível copiar automaticamente.', 'warning');
+      });
+    }
+
+    function abrirResultadoLeitor() {
+      const texto = document.getElementById('leitorTexto').textContent;
+      if (!texto) return;
+
+      if (texto.startsWith('http://') || texto.startsWith('https://')) {
+        window.open(texto, '_blank');
+      } else {
+        mostrarModal('ℹ️', 'Não é um Link', 'O conteúdo lido não é uma URL para abrir no navegador.', 'info');
+      }
     }
 
     // ===== PWA: REGISTRO DO SERVICE WORKER =====
