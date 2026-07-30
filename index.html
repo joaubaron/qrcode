@@ -567,10 +567,9 @@
     <button class="tab-btn" data-tab="tab-email" onclick="trocarAba(this, 'tab-email')">📧 E-mail</button>
     <button class="tab-btn" data-tab="tab-evento" onclick="trocarAba(this, 'tab-evento')">📅 Evento</button>
     <button class="tab-btn" data-tab="tab-instagram" onclick="trocarAba(this, 'tab-instagram')">@ Instagram</button>
-    <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">🟢 WhatsApp</button>
+    <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">💬 WhatsApp</button>
     <button class="tab-btn" data-tab="tab-contato" onclick="trocarAba(this, 'tab-contato')">👤 Contato</button>
     <button class="tab-btn" data-tab="tab-local" onclick="trocarAba(this, 'tab-local')">📍 Local</button>
-    <button class="tab-btn" data-tab="tab-leitor" onclick="trocarAba(this, 'tab-leitor')">🎥 Leitor</button>
   </div>
 
   <!-- ===== SITE ===== -->
@@ -695,7 +694,7 @@
   <!-- ===== WHATSAPP ===== -->
   <div id="tab-whatsapp" class="tab-content">
     <div class="campo">
-      <label>🟢 Número (com DDI e DDD)</label>
+      <label>💬 Número (com DDI e DDD)</label>
       <input type="tel" id="whats-numero" placeholder="Ex: 55 47 99999-9999">
     </div>
     <div class="campo">
@@ -704,7 +703,7 @@
     </div>
     <button class="btn-gerar whatsapp" onclick="gerarWhatsapp()">Gerar QR Code</button>
     <div class="qr-wrapper"><div id="qrcode-whatsapp"></div></div>
-    <div class="info">🟢 <span id="infoWhatsapp">Nenhum QR Code gerado</span></div>
+    <div class="info">💬 <span id="infoWhatsapp">Nenhum QR Code gerado</span></div>
   </div>
 
   <!-- ===== CONTATO (vCard COMPLETO) ===== -->
@@ -765,7 +764,7 @@
     <button class="btn-download" onclick="baixarPNG()">⬇️ Baixar PNG</button>
     <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
     <button class="btn-compartilhar" onclick="compartilharQR()">📤 Compartilhar</button>
-    <button class="btn-leitor" onclick="irParaLeitor()">🎥 Leitor</button>
+    <button class="btn-leitor" onclick="irParaLeitor()">🔍 Leitor</button>
   </div>
 
   <div class="footer">QR Code estático — nunca expira</div>
@@ -829,7 +828,7 @@
       'tab-email': '📧 E-mail',
       'tab-evento': '📅 Evento',
       'tab-instagram': '@ Instagram',
-      'tab-whatsapp': '🟢 WhatsApp',
+      'tab-whatsapp': '💬 WhatsApp',
       'tab-contato': '👤 Contato',
       'tab-local': '📍 Local'
     };
@@ -841,7 +840,7 @@
       'tab-email': '📧 E-mail',
       'tab-evento': '📅 Evento/Agenda',
       'tab-instagram': '@ Instagram',
-      'tab-whatsapp': '🟢 WhatsApp',
+      'tab-whatsapp': '💬 WhatsApp',
       'tab-contato': '👤 Contato',
       'tab-local': '📍 Localização'
     };
