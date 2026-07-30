@@ -1,2472 +1,2455 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Gerador de QR Code</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#ffffff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="QR Code">
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js">
-  </script>
-  <script>
-    if (typeof qrcode === 'undefined') {
-      document.write('<script src="qrcode.min.js"><\/script>');
-    }
-  </script>
-  <style>
-    /* Reset -- SEM CONTAINER, SEM CAIXA */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: #ffffff;
-      min-height: 100vh;
-      padding: 20px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    h1 {
-      color: #1a1a1a;
-      font-size: 22px;
-      margin-bottom: 4px;
-      font-weight: 700;
-    }
-
-    .subtitle {
-      color: #6b7280;
-      font-size: 13px;
-      margin-bottom: 16px;
-    }
-
-    .tabs {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-bottom: 16px;
-      background: #f3f4f6;
-      border-radius: 14px;
-      padding: 4px;
-    }
-
-    .tab-btn {
-      padding: 8px 4px;
-      border: none;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      background: transparent;
-      color: #6b7280;
-      transition: all 0.25s ease;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .tab-btn.ativo {
-      background: #ffffff;
-      color: #1a2a6c;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    }
-
-    .tab-content {
-      display: none;
-      animation: fadeIn 0.25s ease;
-    }
-
-    .tab-content.ativo {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .campo {
-      margin-bottom: 10px;
-      text-align: left;
-    }
-
-    .campo label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 3px;
-    }
-
-    .campo input,
-    .campo select,
-    .campo textarea {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 10px;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-      background: white;
-      font-family: inherit;
-      color: #111827;
-    }
-
-    .campo textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
-
-    .campo input:focus,
-    .campo select:focus,
-    .campo textarea:focus {
-      border-color: #1a2a6c;
-      box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.10);
-    }
-
-    .campo input.erro {
-      border-color: #dc3545;
-      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.10);
-    }
-
-    .campo input:disabled {
-      background: #f3f4f6;
-      color: #9ca3af;
-      cursor: not-allowed;
-    }
-
-    .campo .erro-msg {
-      font-size: 11px;
-      color: #dc3545;
-      margin-top: 3px;
-      display: none;
-    }
-
-    .campo .erro-msg.visivel {
-      display: block;
-    }
-
-    .linha-dupla {
-      display: flex;
-      gap: 10px;
-    }
-
-    .linha-dupla .campo {
-      flex: 1;
-    }
-
-    .btn-gerar {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      background: #1a2a6c;
-      color: white;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      margin-top: 4px;
-    }
-
-    .btn-gerar:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
-    }
-
-    .btn-gerar.site {
-      background: #4f6ef7;
-    }
-    .btn-gerar.wifi {
-      background: #1a2a6c;
-    }
-    .btn-gerar.texto {
-      background: #6b7280;
-    }
-    .btn-gerar.email {
-      background: #d64545;
-    }
-    .btn-gerar.evento {
-      background: #e74c3c;
-    }
-    .btn-gerar.instagram {
-      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-    }
-    .btn-gerar.whatsapp {
-      background: #25d366;
-    }
-    .btn-gerar.contato {
-      background: #6f42c1;
-    }
-    .btn-gerar.local {
-      background: #fd7e14;
-    }
-
-    .qr-wrapper {
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 14px 0;
-      min-height: 180px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid #f0f0f0;
-    }
-
-    .qr-wrapper>div {
-      background: white;
-      padding: 8px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .qr-wrapper canvas {
-      display: block;
-      background: white;
-      max-width: 100%;
-      height: auto;
-    }
-
-    .info {
-      font-size: 11px;
-      color: #6b7280;
-      word-break: break-all;
-      background: #f9fafb;
-      padding: 6px 12px;
-      border-radius: 8px;
-      margin-bottom: 4px;
-      text-align: left;
-    }
-
-    .info span {
-      color: #1a2a6c;
-      font-weight: 500;
-    }
-
-    .info-wifi-legivel {
-      font-size: 12px;
-      color: #1f2937;
-      background: #f3f4f6;
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      text-align: left;
-      border-left: 3px solid #1a2a6c;
-    }
-
-    .info-wifi-legivel strong {
-      color: #1a2a6c;
-    }
-
-    .info-evento-legivel {
-      font-size: 12px;
-      color: #1f2937;
-      background: #f3f4f6;
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      text-align: left;
-      border-left: 3px solid #e74c3c;
-    }
-
-    .info-evento-legivel strong {
-      color: #e74c3c;
-    }
-
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .actions button {
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .actions button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    }
-
-    .btn-download {
-      background: #BFDBFE;
-      color: #1E3A8A;
-    }
-
-    .btn-limpar {
-      background: #FDE68A;
-      color: #92400E;
-    }
-
-    .btn-compartilhar {
-      background: #efb9b9;
-      color: #4338CA;
-    }
-
-    .btn-leitor {
-      background: #BBF7D0;
-      color: #166534;
-    }
-
-    /* ===== MODAL LEITOR ===== */
-    .leitor-modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-      animation: fadeInModal 0.25s ease;
-    }
-
-    .leitor-modal-overlay.ativo {
-      display: flex;
-    }
-
-    .leitor-modal-box {
-      background: white;
-      border-radius: 20px;
-      padding: 20px;
-      max-width: 500px;
-      width: 90%;
-      position: relative;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .leitor-modal-close {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      background: none;
-      border: none;
-      font-size: 28px;
-      cursor: pointer;
-      color: #666;
-    }
-
-    .leitor-modal-title {
-      margin-bottom: 15px;
-      color: #1a2a6c;
-      font-size: 18px;
-    }
-
-    .leitor-video-wrapper {
-      background: #111827;
-      border-radius: 12px;
-      overflow: hidden;
-      min-height: 300px;
-      position: relative;
-    }
-
-    .leitor-video-wrapper video {
-      width: 100%;
-      height: 300px;
-      object-fit: cover;
-      display: none;
-    }
-
-    .leitor-placeholder {
-      color: #9ca3af;
-      font-size: 13px;
-      text-align: center;
-      padding: 20px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .leitor-resultado {
-      display: none;
-      margin-top: 15px;
-      padding: 12px;
-      background: #f3f4f6;
-      border-radius: 8px;
-      border-left: 3px solid #1a2a6c;
-      word-break: break-all;
-    }
-
-    .leitor-resultado strong {
-      color: #1a2a6c;
-    }
-
-    .leitor-botoes {
-      display: flex;
-      gap: 8px;
-      margin-top: 15px;
-      flex-wrap: wrap;
-    }
-
-    .leitor-botoes button {
-      flex: 1;
-      min-width: 70px;
-      padding: 10px 6px;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .leitor-botoes button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .btn-leitor-camera {
-      background: #1a2a6c;
-      color: white;
-    }
-
-    .btn-leitor-copiar {
-      display: none;
-      background: #BFDBFE;
-      color: #1E3A8A;
-    }
-
-    .btn-leitor-abrir {
-      display: none;
-      background: #BBF7D0;
-      color: #166534;
-    }
-
-    .btn-leitor-fechar {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      background: #e5e7eb;
-      color: #374151;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .offline-banner {
-      display: none;
-      background: #fef9e7;
-      color: #7d6608;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 500;
-      margin-bottom: 10px;
-      border: 1px solid #fdebd0;
-    }
-    .offline-banner.visible {
-      display: block;
-    }
-
-    .share-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #1a2a6c;
-      background: #f0f2ff;
-      padding: 4px 12px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-bottom: 6px;
-    }
-
-    .footer {
-      margin-top: 12px;
-      font-size: 11px;
-      color: #9ca3af;
-    }
-
-    @media (max-width: 480px) {
-      .linha-dupla {
-        flex-direction: column;
-        gap: 0;
-      }
-      .tab-btn {
-        font-size: 11px;
-        padding: 8px 2px;
-      }
-      .leitor-botoes button {
-        font-size: 13px;
-        padding: 10px;
-        min-width: 60px;
-      }
-    }
-
-    /* ===== MODAL ===== */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(4px);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      animation: fadeInModal 0.25s ease;
-    }
-
-    .modal-overlay.ativo {
-      display: flex;
-    }
-
-    @keyframes fadeInModal {
-      from {
-        opacity: 0;
-        transform: scale(0.96);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    @keyframes slideUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .modal-box {
-      background: white;
-      border-radius: 20px;
-      padding: 30px 28px;
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.20);
-      animation: slideUp 0.25s ease;
-    }
-
-    .modal-icon {
-      font-size: 44px;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .modal-icon.error {
-      color: #dc3545;
-    }
-    .modal-icon.success {
-      color: #28a745;
-    }
-    .modal-icon.warning {
-      color: #ffc107;
-    }
-    .modal-icon.info {
-      color: #17a2b8;
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #111827;
-      margin-bottom: 6px;
-    }
-
-    .modal-message {
-      font-size: 14px;
-      color: #4b5563;
-      line-height: 1.6;
-      margin-bottom: 18px;
-      white-space: pre-line;
-    }
-
-    .modal-btn {
-      padding: 10px 40px;
-      border: none;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .modal-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
-    }
-
-    .modal-btn.primary {
-      background: #1a2a6c;
-      color: white;
-    }
-    .modal-btn.success {
-      background: #28a745;
-      color: white;
-    }
-    .modal-btn.danger {
-      background: #dc3545;
-      color: white;
-    }
-    .modal-btn.warning {
-      background: #ffc107;
-      color: #1f2937;
-    }
-    .modal-btn.info {
-      background: #17a2b8;
-      color: white;
-    }
-    .modal-btn.gray {
-      background: #6b7280;
-      color: white;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Gerador de QR Code</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QR Code">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js">
+</script>
+<script>
+if (typeof qrcode === 'undefined') {
+document.write('<script src="qrcode.min.js"><\/script>');
+}
+</script>
+<style>
+/* Reset -- SEM CONTAINER, SEM CAIXA */
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+background: #ffffff;
+min-height: 100vh;
+padding: 20px;
+max-width: 600px;
+margin: 0 auto;
+}
+
+h1 {
+color: #1a1a1a;
+font-size: 22px;
+margin-bottom: 4px;
+font-weight: 700;
+}
+
+.subtitle {
+color: #6b7280;
+font-size: 13px;
+margin-bottom: 16px;
+}
+
+.tabs {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 6px;
+margin-bottom: 16px;
+background: #f3f4f6;
+border-radius: 14px;
+padding: 4px;
+}
+
+.tab-btn {
+padding: 8px 4px;
+border: none;
+border-radius: 10px;
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+background: transparent;
+color: #6b7280;
+transition: all 0.25s ease;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.tab-btn.ativo {
+background: #ffffff;
+color: #1a2a6c;
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tab-content {
+display: none;
+animation: fadeIn 0.25s ease;
+}
+
+.tab-content.ativo {
+display: block;
+}
+
+@keyframes fadeIn {
+from {
+opacity: 0;
+transform: translateY(6px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+
+.campo {
+margin-bottom: 10px;
+text-align: left;
+}
+
+.campo label {
+display: block;
+font-size: 12px;
+font-weight: 600;
+color: #374151;
+margin-bottom: 3px;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+width: 100%;
+padding: 10px 14px;
+border: 1.5px solid #e5e7eb;
+border-radius: 10px;
+font-size: 14px;
+outline: none;
+transition: border-color 0.2s ease, box-shadow 0.2s ease;
+background: white;
+font-family: inherit;
+color: #111827;
+}
+
+.campo textarea {
+resize: vertical;
+min-height: 60px;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+border-color: #1a2a6c;
+box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.10);
+}
+
+.campo input.erro {
+border-color: #dc3545;
+box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.10);
+}
+
+.campo input:disabled {
+background: #f3f4f6;
+color: #9ca3af;
+cursor: not-allowed;
+}
+
+.campo .erro-msg {
+font-size: 11px;
+color: #dc3545;
+margin-top: 3px;
+display: none;
+}
+
+.campo .erro-msg.visivel {
+display: block;
+}
+
+.linha-dupla {
+display: flex;
+gap: 10px;
+}
+
+.linha-dupla .campo {
+flex: 1;
+}
+
+.btn-gerar {
+width: 100%;
+padding: 12px;
+border: none;
+border-radius: 10px;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+background: #1a2a6c;
+color: white;
+transition: transform 0.15s ease, box-shadow 0.15s ease;
+margin-top: 4px;
+}
+
+.btn-gerar:hover {
+transform: translateY(-1px);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+.btn-gerar.site {
+background: #4f6ef7;
+}
+.btn-gerar.wifi {
+background: #1a2a6c;
+}
+.btn-gerar.texto {
+background: #6b7280;
+}
+.btn-gerar.email {
+background: #d64545;
+}
+.btn-gerar.evento {
+background: #e74c3c;
+}
+.btn-gerar.instagram {
+background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+.btn-gerar.whatsapp {
+background: #25d366;
+}
+.btn-gerar.contato {
+background: #6f42c1;
+}
+.btn-gerar.local {
+background: #fd7e14;
+}
+
+.qr-wrapper {
+background: #ffffff;
+border-radius: 12px;
+padding: 16px;
+margin: 14px 0;
+min-height: 180px;
+display: flex;
+align-items: center;
+justify-content: center;
+border: 1px solid #f0f0f0;
+}
+
+.qr-wrapper>div {
+background: white;
+padding: 8px;
+border-radius: 4px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.qr-wrapper canvas {
+display: block;
+background: white;
+max-width: 100%;
+height: auto;
+}
+
+.info {
+font-size: 11px;
+color: #6b7280;
+word-break: break-all;
+background: #f9fafb;
+padding: 6px 12px;
+border-radius: 8px;
+margin-bottom: 4px;
+text-align: left;
+}
+
+.info span {
+color: #1a2a6c;
+font-weight: 500;
+}
+
+.info-wifi-legivel {
+font-size: 12px;
+color: #1f2937;
+background: #f3f4f6;
+padding: 8px 12px;
+border-radius: 8px;
+margin-bottom: 8px;
+text-align: left;
+border-left: 3px solid #1a2a6c;
+}
+
+.info-wifi-legivel strong {
+color: #1a2a6c;
+}
+
+.info-evento-legivel {
+font-size: 12px;
+color: #1f2937;
+background: #f3f4f6;
+padding: 8px 12px;
+border-radius: 8px;
+margin-bottom: 8px;
+text-align: left;
+border-left: 3px solid #e74c3c;
+}
+
+.info-evento-legivel strong {
+color: #e74c3c;
+}
+
+.actions {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+margin-top: 8px;
+}
+
+.actions button {
+padding: 10px;
+border: none;
+border-radius: 10px;
+font-size: 13px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.actions button:hover {
+transform: translateY(-1px);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.btn-download {
+background: #BFDBFE;
+color: #1E3A8A;
+}
+
+.btn-limpar {
+background: #FDE68A;
+color: #92400E;
+}
+
+.btn-compartilhar {
+background: #efb9b9;
+color: #4338CA;
+}
+
+.btn-leitor {
+background: #BBF7D0;
+color: #166534;
+}
+
+/* ===== MODAL LEITOR ===== */
+.leitor-modal-overlay {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.9);
+z-index: 10000;
+align-items: center;
+justify-content: center;
+animation: fadeInModal 0.25s ease;
+}
+
+.leitor-modal-overlay.ativo {
+display: flex;
+}
+
+.leitor-modal-box {
+background: white;
+border-radius: 20px;
+padding: 20px;
+max-width: 500px;
+width: 90%;
+position: relative;
+max-height: 90vh;
+overflow-y: auto;
+}
+
+.leitor-modal-close {
+position: absolute;
+top: 10px;
+right: 15px;
+background: none;
+border: none;
+font-size: 28px;
+cursor: pointer;
+color: #666;
+}
+
+.leitor-modal-title {
+margin-bottom: 15px;
+color: #1a2a6c;
+font-size: 18px;
+}
+
+.leitor-video-wrapper {
+background: #111827;
+border-radius: 12px;
+overflow: hidden;
+min-height: 300px;
+position: relative;
+}
+
+.leitor-video-wrapper video {
+width: 100%;
+height: 300px;
+object-fit: cover;
+display: none;
+}
+
+.leitor-placeholder {
+color: #9ca3af;
+font-size: 13px;
+text-align: center;
+padding: 20px;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+}
+
+.leitor-resultado {
+display: none;
+margin-top: 15px;
+padding: 12px;
+background: #f3f4f6;
+border-radius: 8px;
+border-left: 3px solid #1a2a6c;
+word-break: break-all;
+}
+
+.leitor-resultado strong {
+color: #1a2a6c;
+}
+
+.leitor-botoes {
+display: flex;
+gap: 8px;
+margin-top: 15px;
+flex-wrap: wrap;
+}
+
+.leitor-botoes button {
+flex: 1;
+min-width: 70px;
+padding: 10px 6px;
+border: none;
+border-radius: 10px;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.leitor-botoes button:hover {
+transform: translateY(-1px);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-leitor-camera {
+background: #1a2a6c;
+color: white;
+}
+
+.btn-leitor-copiar {
+display: none;
+background: #BFDBFE;
+color: #1E3A8A;
+}
+
+.btn-leitor-abrir {
+display: none;
+background: #BBF7D0;
+color: #166534;
+}
+
+.btn-leitor-fechar {
+width: 100%;
+margin-top: 10px;
+padding: 10px;
+border: none;
+border-radius: 10px;
+background: #e5e7eb;
+color: #374151;
+font-weight: 600;
+cursor: pointer;
+}
+
+.offline-banner {
+display: none;
+background: #fef9e7;
+color: #7d6608;
+padding: 6px 12px;
+border-radius: 8px;
+font-size: 12px;
+font-weight: 500;
+margin-bottom: 10px;
+border: 1px solid #fdebd0;
+}
+.offline-banner.visible {
+display: block;
+}
+
+.share-label {
+font-size: 13px;
+font-weight: 600;
+color: #1a2a6c;
+background: #f0f2ff;
+padding: 4px 12px;
+border-radius: 6px;
+display: inline-block;
+margin-bottom: 6px;
+}
+
+.footer {
+margin-top: 12px;
+font-size: 11px;
+color: #9ca3af;
+}
+
+@media (max-width: 480px) {
+.linha-dupla {
+flex-direction: column;
+gap: 0;
+}
+.tab-btn {
+font-size: 11px;
+padding: 8px 2px;
+}
+.leitor-botoes button {
+font-size: 13px;
+padding: 10px;
+min-width: 60px;
+}
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.4);
+backdrop-filter: blur(4px);
+z-index: 9999;
+align-items: center;
+justify-content: center;
+animation: fadeInModal 0.25s ease;
+}
+
+.modal-overlay.ativo {
+display: flex;
+}
+
+@keyframes fadeInModal {
+from {
+opacity: 0;
+transform: scale(0.96);
+}
+to {
+opacity: 1;
+transform: scale(1);
+}
+}
+
+@keyframes slideUp {
+from {
+transform: translateY(20px);
+opacity: 0;
+}
+to {
+transform: translateY(0);
+opacity: 1;
+}
+}
+
+.modal-box {
+background: white;
+border-radius: 20px;
+padding: 30px 28px;
+max-width: 400px;
+width: 90%;
+text-align: center;
+box-shadow: 0 20px 50px rgba(0, 0, 0, 0.20);
+animation: slideUp 0.25s ease;
+}
+
+.modal-icon {
+font-size: 44px;
+margin-bottom: 8px;
+display: block;
+}
+
+.modal-icon.error {
+color: #dc3545;
+}
+.modal-icon.success {
+color: #28a745;
+}
+.modal-icon.warning {
+color: #ffc107;
+}
+.modal-icon.info {
+color: #17a2b8;
+}
+
+.modal-title {
+font-size: 18px;
+font-weight: 700;
+color: #111827;
+margin-bottom: 6px;
+}
+
+.modal-message {
+font-size: 14px;
+color: #4b5563;
+line-height: 1.6;
+margin-bottom: 18px;
+white-space: pre-line;
+}
+
+.modal-btn {
+padding: 10px 40px;
+border: none;
+border-radius: 12px;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-btn:hover {
+transform: translateY(-1px);
+box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+}
+
+.modal-btn.primary {
+background: #1a2a6c;
+color: white;
+}
+.modal-btn.success {
+background: #28a745;
+color: white;
+}
+.modal-btn.danger {
+background: #dc3545;
+color: white;
+}
+.modal-btn.warning {
+background: #ffc107;
+color: #1f2937;
+}
+.modal-btn.info {
+background: #17a2b8;
+color: white;
+}
+.modal-btn.gray {
+background: #6b7280;
+color: white;
+}
+</style>
 </head>
 <body>
 
-  <div class="offline-banner" id="offlineBanner">📶 Modo Offline - Funcionando normalmente</div>
+<div class="offline-banner" id="offlineBanner">📶 Modo Offline - Funcionando normalmente</div>
 
-  <h1>📱 Gerador de QR Code</h1>
-  <p class="subtitle" id="subtitle"></p>
+<h1>📱 Gerador de QR Code</h1>
+<p class="subtitle" id="subtitle"></p>
 
-  <div class="tabs">
-    <button class="tab-btn ativo" data-tab="tab-site" onclick="trocarAba(this, 'tab-site')">🌐 Site</button>
-    <button class="tab-btn" data-tab="tab-wifi" onclick="trocarAba(this, 'tab-wifi')">📶 Wi-Fi</button>
-    <button class="tab-btn" data-tab="tab-texto" onclick="trocarAba(this, 'tab-texto')">📝 Texto</button>
-    <button class="tab-btn" data-tab="tab-email" onclick="trocarAba(this, 'tab-email')">📧 E-mail</button>
-    <button class="tab-btn" data-tab="tab-evento" onclick="trocarAba(this, 'tab-evento')">📅 Evento</button>
-    <button class="tab-btn" data-tab="tab-instagram" onclick="trocarAba(this, 'tab-instagram')">@ Instagram</button>
-    <button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">💬 WhatsApp</button>
-    <button class="tab-btn" data-tab="tab-contato" onclick="trocarAba(this, 'tab-contato')">👤 Contato</button>
-    <button class="tab-btn" data-tab="tab-local" onclick="trocarAba(this, 'tab-local')">📍 Local</button>
-  </div>
+<div class="tabs">
+<button class="tab-btn ativo" data-tab="tab-site" onclick="trocarAba(this, 'tab-site')">🌐 Site</button>
+<button class="tab-btn" data-tab="tab-wifi" onclick="trocarAba(this, 'tab-wifi')">📶 Wi-Fi</button>
+<button class="tab-btn" data-tab="tab-texto" onclick="trocarAba(this, 'tab-texto')">📝 Texto</button>
+<button class="tab-btn" data-tab="tab-email" onclick="trocarAba(this, 'tab-email')">📧 E-mail</button>
+<button class="tab-btn" data-tab="tab-evento" onclick="trocarAba(this, 'tab-evento')">📅 Evento</button>
+<button class="tab-btn" data-tab="tab-instagram" onclick="trocarAba(this, 'tab-instagram')">@ Instagram</button>
+<button class="tab-btn" data-tab="tab-whatsapp" onclick="trocarAba(this, 'tab-whatsapp')">💬 WhatsApp</button>
+<button class="tab-btn" data-tab="tab-contato" onclick="trocarAba(this, 'tab-contato')">👤 Contato</button>
+<button class="tab-btn" data-tab="tab-local" onclick="trocarAba(this, 'tab-local')">📍 Local</button>
+</div>
 
-  <!-- ===== SITE ===== -->
-  <div id="tab-site" class="tab-content ativo">
-    <div class="campo">
-      <label>🔗 Link</label>
-      <input type="text" id="linkInput" placeholder="ex: www.globo.com" value="https://www.globo.com" oninput="validarUrl()">
-      <div class="erro-msg" id="urlErro">URL inválida. Inclua http:// ou https://</div>
-    </div>
-    <button class="btn-gerar site" onclick="gerarSite()">Gerar QR Code</button>
-    <div class="qr-wrapper"><div id="qrcode-site"></div></div>
-    <div class="info">🔗 <span id="infoSite">Nenhum QR Code gerado</span></div>
-  </div>
+<!-- ===== SITE ===== -->
+<div id="tab-site" class="tab-content ativo">
+<div class="campo">
+<label>🔗 Link</label>
+<input type="text" id="linkInput" placeholder="ex: www.globo.com" value="https://www.globo.com">
+</div>
+<button class="btn-gerar site" onclick="gerarSite()">Gerar QR Code</button>
+<div class="qr-wrapper"><div id="qrcode-site"></div></div>
+<div class="info">🔗 <span id="infoSite">Nenhum QR Code gerado</span></div>
+</div>
 
-  <!-- ===== WI-FI ===== -->
-  <div id="tab-wifi" class="tab-content">
-    <div class="campo">
-      <label>📡 Nome da rede (SSID)</label>
-      <input type="text" id="wifi-ssid" placeholder="Ex: MinhaWiFi" value="MinhaWiFi">
-    </div>
-    <div class="linha-dupla">
-      <div class="campo">
-        <label>🔑 Senha</label>
-        <input type="text" id="wifi-senha" placeholder="Senha" value="12345678">
-      </div>
-      <div class="campo">
-        <label>🔒 Segurança</label>
-        <select id="wifi-tipo" onchange="toggleSenhaWifi()">
-          <option value="WPA">WPA / WPA2</option>
-          <option value="WEP">WEP</option>
-          <option value="nopass">Aberta (sem senha)</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn-gerar wifi" onclick="gerarWifi()">Gerar QR Code</button>
+<!-- ===== WI-FI ===== -->
+<div id="tab-wifi" class="tab-content">
+<div class="campo">
+<label>📡 Nome da rede (SSID)</label>
+<input type="text" id="wifi-ssid" placeholder="Ex: MinhaWiFi" value="MinhaWiFi">
+</div>
+<div class="linha-dupla">
+<div class="campo">
+<label>🔑 Senha</label>
+<input type="text" id="wifi-senha" placeholder="Senha" value="12345678">
+</div>
+<div class="campo">
+<label>🔒 Segurança</label>
+<select id="wifi-tipo" onchange="toggleSenhaWifi()">
+<option value="WPA">WPA / WPA2</option>
+<option value="WEP">WEP</option>
+<option value="nopass">Aberta (sem senha)</option>
+</select>
+</div>
+</div>
+<button class="btn-gerar wifi" onclick="gerarWifi()">Gerar QR Code</button>
 
-    <div class="info-wifi-legivel" id="wifiPreview" style="display:none;">
-      📶 <span id="wifiPreviewSsid"></span> · 🔒 <span id="wifiPreviewTipo"></span> · 🔑 <span id="wifiPreviewSenha"></span>
-    </div>
+<div class="info-wifi-legivel" id="wifiPreview" style="display:none;">
+📶 <span id="wifiPreviewSsid"></span> · 🔒 <span id="wifiPreviewTipo"></span> · 🔑 <span id="wifiPreviewSenha"></span>
+</div>
 
-    <div class="qr-wrapper"><div id="qrcode-wifi"></div></div>
-    <div class="info">📶 <span id="infoWifi">Nenhum QR Code gerado</span></div>
-  </div>
+<div class="qr-wrapper"><div id="qrcode-wifi"></div></div>
+<div class="info">📶 <span id="infoWifi">Nenhum QR Code gerado</span></div>
+</div>
 
-  <!-- ===== TEXTO ===== -->
-  <div id="tab-texto" class="tab-content">
-    <div class="campo">
-      <label>📝 Texto livre</label>
-      <textarea id="texto-conteudo" placeholder="Digite qualquer texto..."></textarea>
-    </div>
-    <button class="btn-gerar texto" onclick="gerarTexto()">Gerar QR Code</button>
-    <div class="qr-wrapper"><div id="qrcode-texto"></div></div>
-    <div class="info">📝 <span id="infoTexto">Nenhum QR Code gerado</span></div>
-  </div>
+<!-- ===== TEXTO ===== -->
+<div id="tab-texto" class="tab-content">
+<div class="campo">
+<label>📝 Texto livre</label>
+<textarea id="texto-conteudo" placeholder="Digite qualquer texto..."></textarea>
+</div>
+<button class="btn-gerar texto" onclick="gerarTexto()">Gerar QR Code</button>
+<div class="qr-wrapper"><div id="qrcode-texto"></div></div>
+<div class="info">📝 <span id="infoTexto">Nenhum QR Code gerado</span></div>
+</div>
 
-  <!-- ===== E-MAIL ===== -->
-  <div id="tab-email" class="tab-content">
-    <div class="campo">
-      <label>📧 Destinatário</label>
-      <input type="email" id="email-destino" placeholder="nome@exemplo.com">
-    </div>
-    <div class="campo">
-      <label>✏️ Assunto (opcional)</label>
-      <input type="text" id="email-assunto" placeholder="Assunto do e-mail">
-    </div>
-    <div class="campo">
-      <label>💬 Mensagem (opcional)</label>
-      <textarea id="email-mensagem" placeholder="Corpo da mensagem..."></textarea>
-    </div>
-    <button class="btn-gerar email" onclick="gerarEmail()">Gerar QR Code</button>
-    <div class="qr-wrapper"><div id="qrcode-email"></div></div>
-    <div class="info">📧 <span id="infoEmail">Nenhum QR Code gerado</span></div>
-  </div>
+<!-- ===== E-MAIL ===== -->
+<div id="tab-email" class="tab-content">
+<div class="campo">
+<label>📧 Destinatário</label>
+<input type="email" id="email-destino" placeholder="nome@exemplo.com">
+</div>
+<div class="campo">
+<label>✏️ Assunto (opcional)</label>
+<input type="text" id="email-assunto" placeholder="Assunto do e-mail">
+</div>
+<div class="campo">
+<label>💬 Mensagem (opcional)</label>
+<textarea id="email-mensagem" placeholder="Corpo da mensagem..."></textarea>
+</div>
+<button class="btn-gerar email" onclick="gerarEmail()">Gerar QR Code</button>
+<div class="qr-wrapper"><div id="qrcode-email"></div></div>
+<div class="info">📧 <span id="infoEmail">Nenhum QR Code gerado</span></div>
+</div>
 
-  <!-- ===== EVENTO/AGENDA ===== -->
-  <div id="tab-evento" class="tab-content">
-    <div class="campo">
-      <label>📝 Título do evento</label>
-      <input type="text" id="evento-titulo" placeholder="Ex: Reunião com equipe">
-    </div>
-    <div class="linha-dupla">
-      <div class="campo">
-        <label>📆 Data</label>
-        <input type="date" id="evento-data">
-      </div>
-      <div class="campo">
-        <label>🕐 Hora</label>
-        <input type="time" id="evento-hora">
-      </div>
-    </div>
-    <div class="campo">
-      <label>📍 Local (opcional)</label>
-      <input type="text" id="evento-local" placeholder="Ex: Sala 301, Edifício Central">
-    </div>
-    <div class="campo">
-      <label>📋 Descrição (opcional)</label>
-      <textarea id="evento-descricao" placeholder="Detalhes do evento..."></textarea>
-    </div>
-    <button class="btn-gerar evento" onclick="gerarEvento()">Gerar QR Code</button>
+<!-- ===== EVENTO/AGENDA ===== -->
+<div id="tab-evento" class="tab-content">
+<div class="campo">
+<label>📝 Título do evento</label>
+<input type="text" id="evento-titulo" placeholder="Ex: Reunião com equipe">
+</div>
+<div class="linha-dupla">
+<div class="campo">
+<label>📆 Data</label>
+<input type="date" id="evento-data">
+</div>
+<div class="campo">
+<label>🕐 Hora</label>
+<input type="time" id="evento-hora">
+</div>
+</div>
+<div class="campo">
+<label>📍 Local (opcional)</label>
+<input type="text" id="evento-local" placeholder="Ex: Sala 301, Edifício Central">
+</div>
+<div class="campo">
+<label>📋 Descrição (opcional)</label>
+<textarea id="evento-descricao" placeholder="Detalhes do evento..."></textarea>
+</div>
+<button class="btn-gerar evento" onclick="gerarEvento()">Gerar QR Code</button>
 
-    <div class="info-evento-legivel" id="eventoPreview" style="display:none;">
-      📅 <span id="eventoPreviewTitulo"></span><br>
-      📆 <span id="eventoPreviewDataHora"></span><br>
-      📍 <span id="eventoPreviewLocal"></span>
-    </div>
+<div class="info-evento-legivel" id="eventoPreview" style="display:none;">
+📅 <span id="eventoPreviewTitulo"></span><br>
+📆 <span id="eventoPreviewDataHora"></span><br>
+📍 <span id="eventoPreviewLocal"></span>
+</div>
 
-    <div class="qr-wrapper"><div id="qrcode-evento"></div></div>
-    <div class="info">📅 <span id="infoEvento">Nenhum QR Code gerado</span></div>
-  </div>
+<div class="qr-wrapper"><div id="qrcode-evento"></div></div>
+<div class="info">📅 <span id="infoEvento">Nenhum QR Code gerado</span></div>
+</div>
 
-  <!-- ===== INSTAGRAM ===== -->
-  <div id="tab-instagram" class="tab-content">
-    <div class="campo">
-      <label>@ Usuário do Instagram</label>
-      <input type="text" id="instagram-usuario" placeholder="Ex: joseaugustobaron">
-    </div>
-    <button class="btn-gerar instagram" onclick="gerarInstagram()">Gerar QR Code</button>
-    <div class="qr-wrapper"><div id="qrcode-instagram"></div></div>
-    <div class="info">@ <span id="infoInstagram">Nenhum QR Code gerado</span></div>
-  </div>
+<!-- ===== INSTAGRAM ===== -->
+<div id="tab-instagram" class="tab-content">
+<div class="campo">
+<label>@ Usuário do Instagram</label>
+<input type="text" id="instagram-usuario" placeholder="Ex: joseaugustobaron">
+</div>
+<button class="btn-gerar instagram" onclick="gerarInstagram()">Gerar QR Code</button>
+<div class="qr-wrapper"><div id="qrcode-instagram"></div></div>
+<div class="info">@ <span id="infoInstagram">Nenhum QR Code gerado</span></div>
+</div>
 
-  <!-- ===== WHATSAPP ===== -->
-  <div id="tab-whatsapp" class="tab-content">
-    <div class="campo">
-      <label>💬 Número (com DDI e DDD)</label>
-      <input type="tel" id="whats-numero" placeholder="Ex: 55 47 99999-9999">
-    </div>
-    <div class="campo">
-      <label>✏️ Mensagem (opcional)</label>
-      <textarea id="whats-mensagem" placeholder="Mensagem pré-preenchida..."></textarea>
-    </div>
-    <button class="btn-gerar whatsapp" onclick="gerarWhatsapp()">Gerar QR Code</button>
-    <div class="qr-wrapper"><div id="qrcode-whatsapp"></div></div>
-    <div class="info">💬 <span id="infoWhatsapp">Nenhum QR Code gerado</span></div>
-  </div>
+<!-- ===== WHATSAPP ===== -->
+<div id="tab-whatsapp" class="tab-content">
+<div class="campo">
+<label>💬 Número (com DDI e DDD)</label>
+<input type="tel" id="whats-numero" placeholder="Ex: 55 47 99999-9999">
+</div>
+<div class="campo">
+<label>✏️ Mensagem (opcional)</label>
+<textarea id="whats-mensagem" placeholder="Mensagem pré-preenchida..."></textarea>
+</div>
+<button class="btn-gerar whatsapp" onclick="gerarWhatsapp()">Gerar QR Code</button>
+<div class="qr-wrapper"><div id="qrcode-whatsapp"></div></div>
+<div class="info">💬 <span id="infoWhatsapp">Nenhum QR Code gerado</span></div>
+</div>
 
-  <!-- ===== CONTATO (vCard COMPLETO) ===== -->
-  <div id="tab-contato" class="tab-content">
-    <div class="campo">
-      <label>👤 Nome completo</label>
-      <input type="text" id="contato-nome" placeholder="Ex: Augusto Baron">
-    </div>
-    <div class="campo">
-      <label>☎️ Telefone</label>
-      <input type="tel" id="contato-telefone" placeholder="Ex: +55 47 99999-9999">
-    </div>
-    <div class="campo">
-      <label>📧 E-mail (opcional)</label>
-      <input type="email" id="contato-email" placeholder="nome@exemplo.com">
-    </div>
-    <div class="campo">
-      <label>🏢 Empresa (opcional)</label>
-      <input type="text" id="contato-empresa" placeholder="Ex: FURB">
-    </div>
-    <button class="btn-gerar contato" onclick="gerarContato()">Gerar QR Code</button>
-    <div class="qr-wrapper"><div id="qrcode-contato"></div></div>
-    <div class="info">👤 <span id="infoContato">Nenhum QR Code gerado</span></div>
-  </div>
+<!-- ===== CONTATO (vCard COMPLETO) ===== -->
+<div id="tab-contato" class="tab-content">
+<div class="campo">
+<label>👤 Nome completo</label>
+<input type="text" id="contato-nome" placeholder="Ex: Augusto Baron">
+</div>
+<div class="campo">
+<label>☎️ Telefone</label>
+<input type="tel" id="contato-telefone" placeholder="Ex: +55 47 99999-9999">
+</div>
+<div class="campo">
+<label>📧 E-mail (opcional)</label>
+<input type="email" id="contato-email" placeholder="nome@exemplo.com">
+</div>
+<div class="campo">
+<label>🏢 Empresa (opcional)</label>
+<input type="text" id="contato-empresa" placeholder="Ex: FURB">
+</div>
+<button class="btn-gerar contato" onclick="gerarContato()">Gerar QR Code</button>
+<div class="qr-wrapper"><div id="qrcode-contato"></div></div>
+<div class="info">👤 <span id="infoContato">Nenhum QR Code gerado</span></div>
+</div>
 
-  <!-- ===== LOCALIZAÇÃO ===== -->
-  <div id="tab-local" class="tab-content">
-    <div class="campo">
-      <label>📍 Endereço ou local</label>
-      <input type="text" id="local-endereco" placeholder="Ex: Rua Bruno Schreiber 155, Blumenau, SC, Brasil">
-    </div>
-    <button class="btn-gerar local" onclick="gerarLocalizacao()">Gerar QR Code</button>
-    <div class="qr-wrapper"><div id="qrcode-local"></div></div>
-    <div class="info">📍 <span id="infoLocal">Nenhum QR Code gerado</span></div>
-  </div>
+<!-- ===== LOCALIZAÇÃO ===== -->
+<div id="tab-local" class="tab-content">
+<div class="campo">
+<label>📍 Endereço ou local</label>
+<input type="text" id="local-endereco" placeholder="Ex: Rua Bruno Schreiber 155, Blumenau, SC, Brasil">
+</div>
+<button class="btn-gerar local" onclick="gerarLocalizacao()">Gerar QR Code</button>
+<div class="qr-wrapper"><div id="qrcode-local"></div></div>
+<div class="info">📍 <span id="infoLocal">Nenhum QR Code gerado</span></div>
+</div>
 
-  <!-- Botões em 2 colunas -->
-  <div class="actions">
-    <button class="btn-download" onclick="baixarPNG()">💾 Salvar PNG</button>
-    <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
-    <button class="btn-compartilhar" onclick="compartilharQR()">🔗 Compartilhar</button>
-    <button class="btn-leitor" onclick="abrirLeitor()">🔍 Leitor</button>
-  </div>
+<!-- Botões em 2 colunas -->
+<div class="actions">
+<button class="btn-download" onclick="baixarPNG()">💾 Salvar PNG</button>
+<button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar</button>
+<button class="btn-compartilhar" onclick="compartilharQR()">🔗 Compartilhar</button>
+<button class="btn-leitor" onclick="abrirLeitor()">🔍 Leitor</button>
+</div>
 
-  <div class="footer">QR Code estático — nunca expira</div>
+<div class="footer">QR Code estático — nunca expira</div>
 
-  <!-- ===== MODAL LEITOR ===== -->
-  <div class="leitor-modal-overlay" id="leitorModal">
-    <div class="leitor-modal-box">
-      <button class="leitor-modal-close" onclick="fecharLeitor()">✕</button>
-      <h3 class="leitor-modal-title">📷 Leitor de QR Code</h3>
-      <div class="leitor-video-wrapper">
-        <video id="leitorVideo" autoplay playsinline muted></video>
-        <div class="leitor-placeholder" id="leitorPlaceholder">🔍 Toque em "Iniciar" para ler um QR Code</div>
-      </div>
-      <div class="leitor-resultado" id="leitorResultado">
-        <strong>📄 Resultado:</strong><br>
-        <span id="leitorTexto"></span>
-      </div>
-      <div class="leitor-botoes" id="leitorBotoes"></div>
-      <button class="btn-leitor-fechar" onclick="fecharLeitor()">Fechar</button>
-    </div>
-  </div>
+<!-- ===== MODAL LEITOR ===== -->
+<div class="leitor-modal-overlay" id="leitorModal">
+<div class="leitor-modal-box">
+<button class="leitor-modal-close" onclick="fecharLeitor()">✕</button>
+<h3 class="leitor-modal-title">📷 Leitor de QR Code</h3>
+<div class="leitor-video-wrapper">
+<video id="leitorVideo" autoplay playsinline muted></video>
+<div class="leitor-placeholder" id="leitorPlaceholder">🔍 Toque em "Iniciar" para ler um QR Code</div>
+</div>
+<div class="leitor-resultado" id="leitorResultado">
+<strong>📄 Resultado:</strong><br>
+<span id="leitorTexto"></span>
+</div>
+<div class="leitor-botoes" id="leitorBotoes"></div>
+<button class="btn-leitor-fechar" onclick="fecharLeitor()">Fechar</button>
+</div>
+</div>
 
-  <!-- ===== MODAL ===== -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal-box">
-      <span class="modal-icon" id="modalIcon">⚠️</span>
-      <h2 class="modal-title" id="modalTitle">Atenção</h2>
-      <p class="modal-message" id="modalMessage">Mensagem aqui</p>
-      <button class="modal-btn primary" id="modalBtn" onclick="fecharModal()">OK</button>
-    </div>
-  </div>
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal-box">
+<span class="modal-icon" id="modalIcon">⚠️</span>
+<h2 class="modal-title" id="modalTitle">Atenção</h2>
+<p class="modal-message" id="modalMessage">Mensagem aqui</p>
+<button class="modal-btn primary" id="modalBtn" onclick="fecharModal()">OK</button>
+</div>
+</div>
 
-  <script>
-    // ===== VERIFICAÇÃO DA BIBLIOTECA =====
-    if (typeof qrcode === 'undefined') {
-      mostrarModal(
-        '❌',
-        'Erro de Carregamento',
-        'Biblioteca QR Code não carregada.\n\nPara funcionar offline, baixe o arquivo qrcode.min.js e coloque na mesma pasta do index.html.\n\nBaixe em: https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js',
-        'danger'
-      );
-    } else if (typeof qrcode.stringToBytesFuncs !== 'undefined' && qrcode.stringToBytesFuncs['UTF-8']) {
-      qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
-    }
-
-    // ===== FUNÇÕES DO MODAL =====
-    function mostrarModal(icone, titulo, mensagem, tipoBotao = 'primary') {
-      document.getElementById('modalIcon').textContent = icone;
-      document.getElementById('modalTitle').textContent = titulo;
-      document.getElementById('modalMessage').textContent = mensagem;
-
-      const btn = document.getElementById('modalBtn');
-      btn.className = 'modal-btn ' + tipoBotao;
-
-      document.getElementById('modalOverlay').classList.add('ativo');
-    }
-
-    function fecharModal() {
-      document.getElementById('modalOverlay').classList.remove('ativo');
-    }
-
-    document.getElementById('modalOverlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        fecharModal();
-      }
-    });
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        fecharModal();
-      }
-    });
-
-    // ===== MAPA DE NOMES DAS ABAS =====
-    const NOMES_ABAS = {
-      'tab-site': '🌐 Site',
-      'tab-wifi': '📶 Wi-Fi',
-      'tab-texto': '📝 Texto',
-      'tab-email': '📧 E-mail',
-      'tab-evento': '📅 Evento',
-      'tab-instagram': '@ Instagram',
-      'tab-whatsapp': '💬 WhatsApp',
-      'tab-contato': '👤 Contato',
-      'tab-local': '📍 Local'
-    };
-
-    const LABELS_ABAS = {
-      'tab-site': '🔗 Link',
-      'tab-wifi': '📶 Rede Wi-Fi',
-      'tab-texto': '📝 Texto',
-      'tab-email': '📧 E-mail',
-      'tab-evento': '📅 Evento/Agenda',
-      'tab-instagram': '@ Instagram',
-      'tab-whatsapp': '💬 WhatsApp',
-      'tab-contato': '👤 Contato',
-      'tab-local': '📍 Localização'
-    };
-
-    // ===== FUNÇÕES DE LOCALSTORAGE =====
-    function salvarDados() {
-      const dados = {
-        siteUrl: document.getElementById('linkInput').value,
-        siteQR: document.getElementById('infoSite').textContent,
-        siteGerado: document.getElementById('infoSite').textContent !== 'Nenhum QR Code gerado',
-
-        wifiSsid: document.getElementById('wifi-ssid').value,
-        wifiSenha: document.getElementById('wifi-senha').value,
-        wifiTipo: document.getElementById('wifi-tipo').value,
-        wifiQR: document.getElementById('infoWifi').textContent,
-        wifiGerado: document.getElementById('infoWifi').textContent !== 'Nenhum QR Code gerado',
-        wifiPreviewVisible: document.getElementById('wifiPreview').style.display !== 'none',
-
-        textoConteudo: document.getElementById('texto-conteudo').value,
-        textoQR: document.getElementById('infoTexto').textContent,
-        textoGerado: document.getElementById('infoTexto').textContent !== 'Nenhum QR Code gerado',
-
-        emailDestino: document.getElementById('email-destino').value,
-        emailAssunto: document.getElementById('email-assunto').value,
-        emailMensagem: document.getElementById('email-mensagem').value,
-        emailQR: document.getElementById('infoEmail').textContent,
-        emailGerado: document.getElementById('infoEmail').textContent !== 'Nenhum QR Code gerado',
-
-        eventoTitulo: document.getElementById('evento-titulo').value,
-        eventoData: document.getElementById('evento-data').value,
-        eventoHora: document.getElementById('evento-hora').value,
-        eventoLocal: document.getElementById('evento-local').value,
-        eventoDescricao: document.getElementById('evento-descricao').value,
-        eventoQR: document.getElementById('infoEvento').textContent,
-        eventoGerado: document.getElementById('infoEvento').textContent !== 'Nenhum QR Code gerado',
-        eventoPreviewVisible: document.getElementById('eventoPreview').style.display !== 'none',
-
-        instagramUsuario: document.getElementById('instagram-usuario').value,
-        instagramQR: document.getElementById('infoInstagram').textContent,
-        instagramGerado: document.getElementById('infoInstagram').textContent !== 'Nenhum QR Code gerado',
-
-        whatsNumero: document.getElementById('whats-numero').value,
-        whatsMensagem: document.getElementById('whats-mensagem').value,
-        whatsQR: document.getElementById('infoWhatsapp').textContent,
-        whatsGerado: document.getElementById('infoWhatsapp').textContent !== 'Nenhum QR Code gerado',
-
-        contatoNome: document.getElementById('contato-nome').value,
-        contatoTelefone: document.getElementById('contato-telefone').value,
-        contatoEmail: document.getElementById('contato-email').value,
-        contatoEmpresa: document.getElementById('contato-empresa').value,
-        contatoQR: document.getElementById('infoContato').textContent,
-        contatoGerado: document.getElementById('infoContato').textContent !== 'Nenhum QR Code gerado',
-
-        localEndereco: document.getElementById('local-endereco').value,
-        localQR: document.getElementById('infoLocal').textContent,
-        localGerado: document.getElementById('infoLocal').textContent !== 'Nenhum QR Code gerado',
-
-        abaAtual: abaAtual
-      };
-
-      localStorage.setItem('qrAppDados', JSON.stringify(dados));
-    }
-
-    function carregarDados() {
-      const dadosSalvos = localStorage.getItem('qrAppDados');
-      if (!dadosSalvos) return;
-
-      try {
-        const dados = JSON.parse(dadosSalvos);
-
-        document.getElementById('linkInput').value = dados.siteUrl || '';
-        if (dados.siteGerado && dados.siteQR && dados.siteQR !== 'Nenhum QR Code gerado') {
-          renderizarQR('qrcode-site', dados.siteQR);
-          document.getElementById('infoSite').textContent = dados.siteQR;
-        }
-
-        document.getElementById('wifi-ssid').value = dados.wifiSsid || '';
-        document.getElementById('wifi-senha').value = dados.wifiSenha || '';
-        document.getElementById('wifi-tipo').value = dados.wifiTipo || 'WPA';
-        toggleSenhaWifi();
-        if (dados.wifiGerado && dados.wifiQR && dados.wifiQR !== 'Nenhum QR Code gerado') {
-          renderizarQR('qrcode-wifi', dados.wifiQR);
-          document.getElementById('infoWifi').textContent = dados.wifiQR;
-          if (dados.wifiPreviewVisible) {
-            const preview = document.getElementById('wifiPreview');
-            document.getElementById('wifiPreviewSsid').textContent = dados.wifiSsid || '';
-            document.getElementById('wifiPreviewTipo').textContent = dados.wifiTipo === 'nopass' ? 'Aberta' : (dados
-              .wifiTipo || 'WPA');
-            document.getElementById('wifiPreviewSenha').textContent = dados.wifiTipo === 'nopass' ? '—' : (dados
-              .wifiSenha || '(vazia)');
-            preview.style.display = 'block';
-          }
-        }
-
-        document.getElementById('texto-conteudo').value = dados.textoConteudo || '';
-        if (dados.textoGerado && dados.textoQR && dados.textoQR !== 'Nenhum QR Code gerado') {
-          renderizarQR('qrcode-texto', dados.textoQR);
-          document.getElementById('infoTexto').textContent = dados.textoQR;
-        }
-
-        document.getElementById('email-destino').value = dados.emailDestino || '';
-        document.getElementById('email-assunto').value = dados.emailAssunto || '';
-        document.getElementById('email-mensagem').value = dados.emailMensagem || '';
-        if (dados.emailGerado && dados.emailQR && dados.emailQR !== 'Nenhum QR Code gerado') {
-          renderizarQR('qrcode-email', dados.emailQR);
-          document.getElementById('infoEmail').textContent = dados.emailQR;
-        }
-
-        document.getElementById('evento-titulo').value = dados.eventoTitulo || '';
-        document.getElementById('evento-data').value = dados.eventoData || '';
-        document.getElementById('evento-hora').value = dados.eventoHora || '';
-        document.getElementById('evento-local').value = dados.eventoLocal || '';
-        document.getElementById('evento-descricao').value = dados.eventoDescricao || '';
-        if (dados.eventoGerado && dados.eventoQR && dados.eventoQR !== 'Nenhum QR Code gerado') {
-          renderizarQR('qrcode-evento', dados.eventoQR);
-          document.getElementById('infoEvento').textContent = dados.eventoQR;
-          if (dados.eventoPreviewVisible) {
-            const preview = document.getElementById('eventoPreview');
-            document.getElementById('eventoPreviewTitulo').textContent = dados.eventoTitulo || '';
-            const dataHora = formatarDataHora(dados.eventoData || '', dados.eventoHora || '');
-            document.getElementById('eventoPreviewDataHora').textContent = dataHora;
-            document.getElementById('eventoPreviewLocal').textContent = dados.eventoLocal || '(local não informado)';
-            preview.style.display = 'block';
-          }
-        }
-
-        document.getElementById('instagram-usuario').value = dados.instagramUsuario || '';
-        if (dados.instagramGerado && dados.instagramQR && dados.instagramQR !== 'Nenhum QR Code gerado') {
-          renderizarQR('qrcode-instagram', dados.instagramQR);
-          document.getElementById('infoInstagram').textContent = dados.instagramQR;
-        }
-
-        document.getElementById('whats-numero').value = dados.whatsNumero || '';
-        document.getElementById('whats-mensagem').value = dados.whatsMensagem || '';
-        if (dados.whatsGerado && dados.whatsQR && dados.whatsQR !== 'Nenhum QR Code gerado') {
-          renderizarQR('qrcode-whatsapp', dados.whatsQR);
-          document.getElementById('infoWhatsapp').textContent = dados.whatsQR;
-        }
-
-        document.getElementById('contato-nome').value = dados.contatoNome || '';
-        document.getElementById('contato-telefone').value = dados.contatoTelefone || '';
-        document.getElementById('contato-email').value = dados.contatoEmail || '';
-        document.getElementById('contato-empresa').value = dados.contatoEmpresa || '';
-        if (dados.contatoGerado && dados.contatoQR && dados.contatoQR !== 'Nenhum QR Code gerado') {
-          renderizarQR('qrcode-contato', dados.contatoQR);
-          document.getElementById('infoContato').textContent = dados.contatoQR;
-        }
-
-        document.getElementById('local-endereco').value = dados.localEndereco || '';
-        if (dados.localGerado && dados.localQR && dados.localQR !== 'Nenhum QR Code gerado') {
-          renderizarQR('qrcode-local', dados.localQR);
-          document.getElementById('infoLocal').textContent = dados.localQR;
-        }
-
-        if (dados.abaAtual) {
-          const btnAtual = document.querySelector(`.tab-btn[data-tab="${dados.abaAtual}"]`);
-          if (btnAtual) {
-            trocarAba(btnAtual, dados.abaAtual);
-          }
-        }
-
-      } catch (e) {
-        console.error('Erro ao carregar dados:', e);
-      }
-    }
-
-    // ===== FUNÇÕES DO APP =====
-    let abaAtual = 'tab-site';
-    let senhaAntiga = '12345678';
-
-    // ===== ESTADO DO LEITOR =====
-    let leitorStream = null;
-    let leitorAnimId = null;
-    let leitorAtivo = false;
-    let leitorResultado = null;
-    let leitorResultadoProcessado = false;
-
-    const ABAS = {
-      'tab-site': { qrId: 'qrcode-site', infoId: 'infoSite', arquivo: 'qrcode-site.png' },
-      'tab-wifi': { qrId: 'qrcode-wifi', infoId: 'infoWifi', arquivo: 'qrcode-wifi.png' },
-      'tab-texto': { qrId: 'qrcode-texto', infoId: 'infoTexto', arquivo: 'qrcode-texto.png' },
-      'tab-email': { qrId: 'qrcode-email', infoId: 'infoEmail', arquivo: 'qrcode-email.png' },
-      'tab-evento': { qrId: 'qrcode-evento', infoId: 'infoEvento', arquivo: 'qrcode-evento.png' },
-      'tab-instagram': { qrId: 'qrcode-instagram', infoId: 'infoInstagram', arquivo: 'qrcode-instagram.png' },
-      'tab-whatsapp': { qrId: 'qrcode-whatsapp', infoId: 'infoWhatsapp', arquivo: 'qrcode-whatsapp.png' },
-      'tab-contato': { qrId: 'qrcode-contato', infoId: 'infoContato', arquivo: 'qrcode-contato.png' },
-      'tab-local': { qrId: 'qrcode-local', infoId: 'infoLocal', arquivo: 'qrcode-local.png' }
-    };
-
-    // ===== FUNÇÃO CENTRALIZADA PARA CRIAR BOTÕES DO LEITOR =====
-    function criarBotoesLeitor(mostrarIniciar = true, textoIniciar = '🔍 Iniciar', aoClicarIniciar = null) {
-      const container = document.getElementById('leitorBotoes');
-      container.innerHTML = '';
-
-      // Botão Iniciar/Parar (opcional)
-      if (mostrarIniciar) {
-        const btn = document.createElement('button');
-        btn.className = 'btn-leitor-camera';
-        btn.id = 'btnLeitorToggle';
-        btn.textContent = textoIniciar;
-        btn.onclick = aoClicarIniciar || function() { toggleLeitor(); };
-        container.appendChild(btn);
-      }
-
-      // Botão Copiar (sempre presente, mas oculto inicialmente)
-      const btnCopiar = document.createElement('button');
-      btnCopiar.className = 'btn-leitor-copiar';
-      btnCopiar.id = 'btnCopiarLeitor';
-      btnCopiar.textContent = '📋 Copiar';
-      btnCopiar.style.display = 'none';
-      btnCopiar.onclick = copiarLeitor;
-      container.appendChild(btnCopiar);
-
-      // Botão Abrir (sempre presente, mas oculto inicialmente)
-      const btnAbrir = document.createElement('button');
-      btnAbrir.className = 'btn-leitor-abrir';
-      btnAbrir.id = 'btnAbrirLeitor';
-      btnAbrir.textContent = '🔗 Abrir';
-      btnAbrir.style.display = 'none';
-      btnAbrir.onclick = abrirLeitorResultado;
-      container.appendChild(btnAbrir);
-
-      return container;
-    }
-
-  function trocarAba(botao, id) {
-  abaAtual = id;
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ativo'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('ativo'));
-  document.getElementById(id).classList.add('ativo');
-  botao.classList.add('ativo');
-  salvarDados();
+<script>
+// ===== VERIFICAÇÃO DA BIBLIOTECA =====
+if (typeof qrcode === 'undefined') {
+mostrarModal(
+'❌',
+'Erro de Carregamento',
+'Biblioteca QR Code não carregada.\n\nPara funcionar offline, baixe o arquivo qrcode.min.js e coloque na mesma pasta do index.html.\n\nBaixe em: https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js',
+'danger'
+);
+} else if (typeof qrcode.stringToBytesFuncs !== 'undefined' && qrcode.stringToBytesFuncs['UTF-8']) {
+qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
 }
 
-    function abrirLeitor() {
-      document.getElementById('leitorModal').classList.add('ativo');
-      // Reset do leitor ao abrir
-      pararLeitor();
-      leitorResultadoProcessado = false;
-      leitorResultado = null;
-
-      // Usa a função centralizada para criar os botões
-      criarBotoesLeitor(true, '🔍 Iniciar', function() { toggleLeitor(); });
-
-      // Mostra placeholder, esconde resultado
-      document.getElementById('leitorPlaceholder').style.display = 'block';
-      document.getElementById('leitorResultado').style.display = 'none';
-      document.getElementById('leitorResultado').innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
-      document.getElementById('leitorTexto').textContent = '';
-    }
-
-    function fecharLeitor() {
-      pararLeitor();
-      document.getElementById('leitorModal').classList.remove('ativo');
-    }
-
-    function validarUrl() {
-      const input = document.getElementById('linkInput');
-      const erro = document.getElementById('urlErro');
-      const url = input.value.trim();
-
-      if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
-        erro.classList.add('visivel');
-        input.classList.add('erro');
-        return false;
-      } else {
-        erro.classList.remove('visivel');
-        input.classList.remove('erro');
-        return true;
-      }
-    }
-
-    function toggleSenhaWifi() {
-      const tipo = document.getElementById('wifi-tipo').value;
-      const senhaInput = document.getElementById('wifi-senha');
-
-      if (tipo === 'nopass') {
-        senhaAntiga = senhaInput.value;
-        senhaInput.disabled = true;
-        senhaInput.value = '';
-        senhaInput.placeholder = 'Sem senha';
-      } else {
-        senhaInput.disabled = false;
-        senhaInput.placeholder = 'Senha';
-        if (!senhaInput.value && senhaAntiga) {
-          senhaInput.value = senhaAntiga;
-        }
-      }
-    }
-
-    function escaparWifi(texto) {
-      return texto.replace(/\\/g, '\\\\')
-        .replace(/;/g, '\\;')
-        .replace(/,/g, '\\,')
-        .replace(/:/g, '\\:')
-        .replace(/"/g, '\\"')
-        .replace(/'/g, "\\'")
-        .replace(/&/g, '\\&');
-    }
-
-    function escaparVCard(texto) {
-      return String(texto)
-        .replace(/\\/g, '\\\\')
-        .replace(/;/g, '\\;')
-        .replace(/,/g, '\\,')
-        .replace(/\n/g, '\\n');
-    }
-
-    function apenasDigitos(texto) {
-      let limpo = texto.trim().replace(/[^\d+]/g, '');
-      const comMais = limpo.startsWith('+');
-      limpo = limpo.replace(/\+/g, '');
-      return comMais ? '+' + limpo : limpo;
-    }
-
-    function formatarDataHora(data, hora) {
-      if (!data) return '';
-      const partes = data.split('-');
-      const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-      if (hora) {
-        return `${dataFormatada} às ${hora}`;
-      }
-      return dataFormatada;
-    }
-
-    function renderizarQR(divId, texto) {
-      const qr = document.getElementById(divId);
-      qr.innerHTML = "";
-
-      const qrObj = qrcode(0, 'M');
-      qrObj.addData(String(texto));
-      qrObj.make();
-
-      const canvasExibicao = document.createElement('canvas');
-      const tamanhoExibicao = 200;
-      const tamanhoComBorda = tamanhoExibicao + 20;
-      canvasExibicao.width = tamanhoComBorda;
-      canvasExibicao.height = tamanhoComBorda;
-      canvasExibicao.style.width = tamanhoComBorda + 'px';
-      canvasExibicao.style.height = tamanhoComBorda + 'px';
-
-      const ctx = canvasExibicao.getContext('2d');
-      const cells = qrObj.getModuleCount();
-      const cellSize = tamanhoExibicao / cells;
-
-      ctx.imageSmoothingEnabled = false;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, tamanhoComBorda, tamanhoComBorda);
-
-      const offset = 10;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(offset, offset, tamanhoExibicao, tamanhoExibicao);
-
-      ctx.fillStyle = '#000000';
-      for (let row = 0; row < cells; row++) {
-        for (let col = 0; col < cells; col++) {
-          if (qrObj.isDark(row, col)) {
-            ctx.fillRect(
-              offset + Math.floor(col * cellSize),
-              offset + Math.floor(row * cellSize),
-              Math.ceil(cellSize),
-              Math.ceil(cellSize)
-            );
-          }
-        }
-      }
-
-      canvasExibicao.dataset.qrData = texto;
-      qr.appendChild(canvasExibicao);
-    }
-
-    // ===== FUNÇÕES GERADORAS =====
-    function gerarSite() {
-      let url = document.getElementById('linkInput').value.trim();
-      if (!url) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Digite um link para gerar o QR Code.', 'warning');
-        return;
-      }
-
-      if (url.toLowerCase().startsWith('javascript:')) {
-        mostrarModal('❌', 'URL Inválida', 'Esta URL não é permitida por motivos de segurança.', 'danger');
-        return;
-      }
-
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = 'https://' + url;
-        document.getElementById('linkInput').value = url;
-      }
-
-      renderizarQR('qrcode-site', url);
-      document.getElementById('infoSite').textContent = url;
-      salvarDados();
-    }
-
-    function gerarWifi() {
-      const ssid = document.getElementById('wifi-ssid').value.trim();
-      let senha = document.getElementById('wifi-senha').value.trim();
-      const tipo = document.getElementById('wifi-tipo').value;
-
-      if (!ssid) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Digite o nome da rede Wi-Fi (SSID).', 'warning');
-        return;
-      }
-
-      const ssidEscapado = escaparWifi(ssid);
-      const senhaEscapada = escaparWifi(senha);
-
-      let txt;
-      if (tipo === 'nopass') {
-        txt = `WIFI:T:nopass;S:${ssidEscapado};;`;
-      } else {
-        txt = `WIFI:T:${tipo};S:${ssidEscapado};`;
-        if (senhaEscapada) txt += `P:${senhaEscapada};`;
-        txt += ';';
-      }
-
-      renderizarQR('qrcode-wifi', txt);
-      document.getElementById('infoWifi').textContent = txt;
-
-      const preview = document.getElementById('wifiPreview');
-      document.getElementById('wifiPreviewSsid').textContent = ssid;
-      document.getElementById('wifiPreviewTipo').textContent = tipo === 'nopass' ? 'Aberta' : tipo;
-      document.getElementById('wifiPreviewSenha').textContent = tipo === 'nopass' ? '—' : (senha || '(vazia)');
-      preview.style.display = 'block';
-      salvarDados();
-    }
-
-    function gerarTexto() {
-      const texto = document.getElementById('texto-conteudo').value.trim();
-      if (!texto) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Digite um texto para gerar o QR Code.', 'warning');
-        return;
-      }
-
-      renderizarQR('qrcode-texto', texto);
-      document.getElementById('infoTexto').textContent = texto;
-      salvarDados();
-    }
-
-    function gerarEmail() {
-      const destino = document.getElementById('email-destino').value.trim();
-      const assunto = document.getElementById('email-assunto').value.trim();
-      const mensagem = document.getElementById('email-mensagem').value.trim();
-
-      if (!destino) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Digite o e-mail do destinatário.', 'warning');
-        return;
-      }
-
-      let txt = `mailto:${destino}`;
-      const params = [];
-      if (assunto) params.push('subject=' + encodeURIComponent(assunto));
-      if (mensagem) params.push('body=' + encodeURIComponent(mensagem));
-      if (params.length) txt += '?' + params.join('&');
-
-      renderizarQR('qrcode-email', txt);
-      document.getElementById('infoEmail').textContent = txt;
-      salvarDados();
-    }
-
-    function gerarEvento() {
-      const titulo = document.getElementById('evento-titulo').value.trim();
-      const data = document.getElementById('evento-data').value;
-      const hora = document.getElementById('evento-hora').value;
-      const local = document.getElementById('evento-local').value.trim();
-      const descricao = document.getElementById('evento-descricao').value.trim();
-
-      if (!titulo) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Digite o título do evento.', 'warning');
-        return;
-      }
-
-      if (!data) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Selecione a data do evento.', 'warning');
-        return;
-      }
-
-      if (!hora) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Selecione a hora do evento.', 'warning');
-        return;
-      }
-
-      const [ano, mes, dia] = data.split('-').map(Number);
-      const [h, m] = hora.split(':').map(Number);
-      const inicio = new Date(ano, mes - 1, dia, h, m, 0);
-      const fim = new Date(inicio.getTime() + 60 * 60 * 1000);
-
-      const pad = n => String(n).padStart(2, '0');
-      const formatarICS = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-
-      const dataHoraInicio = formatarICS(inicio);
-      const dataHoraFim = formatarICS(fim);
-
-      let txt = `https://www.google.com/calendar/render?action=TEMPLATE`;
-      txt += `&text=${encodeURIComponent(titulo)}`;
-      txt += `&dates=${dataHoraInicio}/${dataHoraFim}`;
-      if (local) txt += `&location=${encodeURIComponent(local)}`;
-      if (descricao) txt += `&details=${encodeURIComponent(descricao)}`;
-
-      renderizarQR('qrcode-evento', txt);
-
-      const dataHoraFormatada = formatarDataHora(data, hora);
-      document.getElementById('infoEvento').textContent = `${titulo} · ${dataHoraFormatada}${local ? ' · ' + local : ''}`;
-
-      const preview = document.getElementById('eventoPreview');
-      document.getElementById('eventoPreviewTitulo').textContent = titulo;
-      document.getElementById('eventoPreviewDataHora').textContent = dataHoraFormatada;
-      document.getElementById('eventoPreviewLocal').textContent = local || '(local não informado)';
-      preview.style.display = 'block';
-      salvarDados();
-    }
-
-    function gerarInstagram() {
-      let usuario = document.getElementById('instagram-usuario').value.trim();
-
-      if (!usuario) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Digite o usuário do Instagram.', 'warning');
-        return;
-      }
-
-      usuario = usuario.replace(/^@/, '');
-      usuario = usuario.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '');
-      usuario = usuario.replace(/\/+$/, '');
-
-      const url = `https://www.instagram.com/${usuario}/`;
-
-      renderizarQR('qrcode-instagram', url);
-      document.getElementById('infoInstagram').textContent = url;
-      salvarDados();
-    }
-
-    function gerarWhatsapp() {
-      const numero = document.getElementById('whats-numero').value.trim();
-      const mensagem = document.getElementById('whats-mensagem').value.trim();
-      if (!numero) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Digite um número de telefone para o WhatsApp.', 'warning');
-        return;
-      }
-
-      const numeroLimpo = apenasDigitos(numero).replace('+', '');
-      let txt = `https://wa.me/${numeroLimpo}`;
-      if (mensagem) txt += `?text=${encodeURIComponent(mensagem)}`;
-
-      renderizarQR('qrcode-whatsapp', txt);
-      document.getElementById('infoWhatsapp').textContent = txt;
-      salvarDados();
-    }
-
-    function gerarContato() {
-      const nome = document.getElementById('contato-nome').value.trim();
-      const telefone = document.getElementById('contato-telefone').value.trim();
-      const email = document.getElementById('contato-email').value.trim();
-      const empresa = document.getElementById('contato-empresa').value.trim();
-
-      if (!nome) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Digite o nome do contato.', 'warning');
-        return;
-      }
-
-      let txt = `BEGIN:VCARD\nVERSION:3.0\nFN:${escaparVCard(nome)}\nTEL:${escaparVCard(telefone)}`;
-      if (email) txt += `\nEMAIL:${escaparVCard(email)}`;
-      if (empresa) txt += `\nORG:${escaparVCard(empresa)}`;
-      txt += `\nEND:VCARD`;
-
-      renderizarQR('qrcode-contato', txt);
-      document.getElementById('infoContato').textContent = `${nome}${telefone ? ' · ' + telefone : ''}${email ? ' · ' + email : ''}`;
-      salvarDados();
-    }
-
-    function gerarLocalizacao() {
-      const endereco = document.getElementById('local-endereco').value.trim();
-      if (!endereco) {
-        mostrarModal('⚠️', 'Campo Vazio', 'Digite um endereço ou local.', 'warning');
-        return;
-      }
-
-      const txt = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
-      renderizarQR('qrcode-local', txt);
-      document.getElementById('infoLocal').textContent = endereco;
-      salvarDados();
-    }
-
-    // ===== GERAÇÃO DO CANVAS EM ALTA RESOLUÇÃO =====
-    function gerarCanvasQR(tamanho = 1024) {
-      const config = ABAS[abaAtual];
-      if (!config) return null;
-
-      const div = document.getElementById(config.qrId);
-      const canvasExibicao = div.querySelector('canvas');
-
-      if (!canvasExibicao) {
-        mostrarModal('⚠️', 'Nenhum QR Code', 'Gere um QR Code primeiro antes de continuar.', 'warning');
-        return null;
-      }
-
-      const texto = canvasExibicao.dataset.qrData;
-      if (!texto) {
-        mostrarModal('❌', 'Erro', 'Dados do QR Code não encontrados. Tente gerar novamente.', 'danger');
-        return null;
-      }
-
-      const qrObj = qrcode(0, 'M');
-      qrObj.addData(String(texto));
-      qrObj.make();
-
-      const cells = qrObj.getModuleCount();
-      const margemPercentual = 0.10;
-      const margemPixels = Math.floor(tamanho * margemPercentual);
-      const tamanhoQR = tamanho - (margemPixels * 2);
-      const cellSize = tamanhoQR / cells;
-
-      const canvasDownload = document.createElement('canvas');
-      canvasDownload.width = tamanho;
-      canvasDownload.height = tamanho;
-      const ctx = canvasDownload.getContext('2d');
-
-      ctx.imageSmoothingEnabled = false;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, tamanho, tamanho);
-
-      ctx.fillStyle = '#000000';
-      for (let row = 0; row < cells; row++) {
-        for (let col = 0; col < cells; col++) {
-          if (qrObj.isDark(row, col)) {
-            ctx.fillRect(
-              margemPixels + Math.floor(col * cellSize),
-              margemPixels + Math.floor(row * cellSize),
-              Math.ceil(cellSize),
-              Math.ceil(cellSize)
-            );
-          }
-        }
-      }
-
-      return canvasDownload;
-    }
-
-    function dataURLtoBlob(dataURL) {
-      const [header, base64] = dataURL.split(',');
-      const mime = header.match(/:(.*?);/)[1];
-      const binario = atob(base64);
-      const array = new Uint8Array(binario.length);
-      for (let i = 0; i < binario.length; i++) {
-        array[i] = binario.charCodeAt(i);
-      }
-      return new Blob([array], { type: mime });
-    }
-
-    // ===== DOWNLOAD =====
-    function baixarPNG() {
-      const config = ABAS[abaAtual];
-      if (!config) return;
-
-      const canvasDownload = gerarCanvasQR();
-      if (!canvasDownload) return;
-
-      const link = document.createElement('a');
-      link.download = config.arquivo;
-      link.href = canvasDownload.toDataURL('image/png');
-      link.click();
-    }
-
-    // ===== COMPARTILHAR =====
-    function compartilharQR() {
-      const config = ABAS[abaAtual];
-      if (!config) return;
-
-      const canvasDownload = gerarCanvasQR();
-      if (!canvasDownload) return;
-
-      const dataUrl = canvasDownload.toDataURL('image/png');
-      const nomeAba = LABELS_ABAS[abaAtual] || 'QR Code';
-      const emoji = NOMES_ABAS[abaAtual] || '📱';
-
-      if (navigator.share) {
-        const blob = dataURLtoBlob(dataUrl);
-        const file = new File([blob], config.arquivo, { type: 'image/png' });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          navigator.share({
-            files: [file],
-            title: `${emoji} ${nomeAba}`,
-            text: `📱 QR Code: ${nomeAba}\n\nEscaneie este QR Code para acessar o conteúdo.`
-          }).catch((err) => {
-            if (err.name !== 'AbortError') {
-              compartilharComoTexto(nomeAba, emoji);
-            }
-          });
-          return;
-        }
-      }
-
-      compartilharComoTexto(nomeAba, emoji);
-    }
-
-    function compartilharComoTexto(nomeAba, emoji) {
-      const config = ABAS[abaAtual];
-      if (!config) return;
-
-      const canvasDownload = gerarCanvasQR();
-      if (!canvasDownload) return;
-
-      const dataUrl = canvasDownload.toDataURL('image/png');
-
-      let conteudoDesc = '';
-      switch (abaAtual) {
-        case 'tab-site':
-          conteudoDesc = document.getElementById('linkInput').value.trim() || 'Site';
-          break;
-        case 'tab-wifi':
-          conteudoDesc = `Rede: ${document.getElementById('wifi-ssid').value.trim() || 'Wi-Fi'}`;
-          break;
-        case 'tab-texto':
-          conteudoDesc = document.getElementById('texto-conteudo').value.trim() || 'Texto';
-          break;
-        case 'tab-email':
-          conteudoDesc = `E-mail: ${document.getElementById('email-destino').value.trim() || 'Destinatário'}`;
-          break;
-        case 'tab-evento':
-          conteudoDesc = document.getElementById('evento-titulo').value.trim() || 'Evento';
-          break;
-        case 'tab-instagram':
-          conteudoDesc = `@${document.getElementById('instagram-usuario').value.trim() || 'Instagram'}`;
-          break;
-        case 'tab-whatsapp':
-          conteudoDesc = `WhatsApp: ${document.getElementById('whats-numero').value.trim() || 'Número'}`;
-          break;
-        case 'tab-contato':
-          conteudoDesc = document.getElementById('contato-nome').value.trim() || 'Contato';
-          break;
-        case 'tab-local':
-          conteudoDesc = document.getElementById('local-endereco').value.trim() || 'Localização';
-          break;
-        default:
-          conteudoDesc = 'QR Code';
-      }
-
-      const textoSha = `${emoji} ${nomeAba}\n\n📌 ${conteudoDesc}\n\n🔗 Escaneie o QR Code para acessar o conteúdo.`;
-
-      if (navigator.share) {
-        navigator.share({
-          title: `${emoji} ${nomeAba}`,
-          text: textoSha,
-          url: dataUrl
-        }).catch((err) => {
-          if (err.name !== 'AbortError') {
-            baixarPNG();
-          }
-        });
-      } else {
-        baixarPNG();
-      }
-    }
-
-    // ===== LIMPAR =====
-    function limparTudo() {
-      Object.values(ABAS).forEach(cfg => {
-        document.getElementById(cfg.qrId).innerHTML = '';
-        document.getElementById(cfg.infoId).textContent = 'Nenhum QR Code gerado';
-      });
-
-      document.getElementById('linkInput').value = '';
-      document.getElementById('urlErro').classList.remove('visivel');
-      document.getElementById('linkInput').classList.remove('erro');
-
-      document.getElementById('wifi-ssid').value = '';
-      document.getElementById('wifi-senha').value = '';
-      document.getElementById('wifi-tipo').value = 'WPA';
-      document.getElementById('wifiPreview').style.display = 'none';
-      toggleSenhaWifi();
-
-      document.getElementById('texto-conteudo').value = '';
-      document.getElementById('email-destino').value = '';
-      document.getElementById('email-assunto').value = '';
-      document.getElementById('email-mensagem').value = '';
-      document.getElementById('evento-titulo').value = '';
-      document.getElementById('evento-data').value = '';
-      document.getElementById('evento-hora').value = '';
-      document.getElementById('evento-local').value = '';
-      document.getElementById('evento-descricao').value = '';
-      document.getElementById('eventoPreview').style.display = 'none';
-
-      document.getElementById('instagram-usuario').value = '';
-      document.getElementById('whats-numero').value = '';
-      document.getElementById('whats-mensagem').value = '';
-      document.getElementById('contato-nome').value = '';
-      document.getElementById('contato-telefone').value = '';
-      document.getElementById('contato-email').value = '';
-      document.getElementById('contato-empresa').value = '';
-      document.getElementById('local-endereco').value = '';
-
-      localStorage.removeItem('qrAppDados');
-
-      mostrarModal('🗑️', 'Tudo Limpo!', 'Todos os campos e QR Codes foram limpos.', 'info');
-    }
-
-    // ===== SALVAR CONTATO VCARD =====
-    function salvarContatoVCard(vcardTexto) {
-      const blob = new Blob([vcardTexto], { type: 'text/vcard;charset=utf-8' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-
-      let nomeArquivo = 'contato.vcf';
-      const nomeMatch = vcardTexto.match(/FN:(.+?)(?:\n|$)/);
-      if (nomeMatch) {
-        nomeArquivo = nomeMatch[1].trim().replace(/[^a-zA-Z0-9]/g, '_') + '.vcf';
-      }
-
-      link.download = nomeArquivo;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    }
-
-    // ===== DETECTOR DE TIPOS DE QR CODE =====
-    function detectarTipoQR(texto) {
-      const tipos = [];
-
-      // 1. vCard
-      if (texto.trim().startsWith('BEGIN:VCARD')) {
-        tipos.push({
-          tipo: 'vcard',
-          icone: '👤',
-          label: 'Contato',
-          cor: '#6f42c1',
-          acoes: ['salvar_contato']
-        });
-      }
-
-      // 2. Wi-Fi
-      if (texto.trim().startsWith('WIFI:')) {
-        const ssid = texto.match(/S:([^;]+)/);
-        const tipoSeg = texto.match(/T:([^;]+)/);
-        const senha = texto.match(/P:([^;]+)/);
-        tipos.push({
-          tipo: 'wifi',
-          icone: '📶',
-          label: 'Wi-Fi',
-          cor: '#1a2a6c',
-          dados: { ssid: ssid?.[1] || '', tipo: tipoSeg?.[1] || '', senha: senha?.[1] || '' },
-          acoes: ['copiar_senha', 'mostrar_wifi']
-        });
-      }
-
-      // 3. WhatsApp
-      if (texto.match(/^https?:\/\/wa\.me\//)) {
-        const numero = texto.match(/wa\.me\/(\d+)/);
-        tipos.push({
-          tipo: 'whatsapp',
-          icone: '💬',
-          label: 'WhatsApp',
-          cor: '#25d366',
-          dados: { numero: numero?.[1] || '' },
-          acoes: ['abrir_whatsapp']
-        });
-      }
-
-      // 4. Instagram
-      if (texto.match(/^https?:\/\/(www\.)?instagram\.com\//)) {
-        const usuario = texto.match(/instagram\.com\/([^/]+)/);
-        tipos.push({
-          tipo: 'instagram',
-          icone: '📸',
-          label: 'Instagram',
-          cor: '#bc1888',
-          dados: { usuario: usuario?.[1] || '' },
-          acoes: ['abrir_instagram']
-        });
-      }
-
-      // 5. Google Maps
-      if (texto.match(/^https?:\/\/www\.google\.com\/maps\//)) {
-        const query = texto.match(/query=([^&]+)/);
-        tipos.push({
-          tipo: 'maps',
-          icone: '📍',
-          label: 'Localização',
-          cor: '#fd7e14',
-          dados: { endereco: query?.[1] ? decodeURIComponent(query[1]) : '' },
-          acoes: ['abrir_maps']
-        });
-      }
-
-      // 6. Evento Google Calendar
-      if (texto.match(/^https?:\/\/www\.google\.com\/calendar\/render\?action=TEMPLATE/)) {
-        const titulo = texto.match(/text=([^&]+)/);
-        const data = texto.match(/dates=([^/]+)/);
-        const local = texto.match(/location=([^&]+)/);
-        tipos.push({
-          tipo: 'evento',
-          icone: '📅',
-          label: 'Evento',
-          cor: '#e74c3c',
-          dados: {
-            titulo: titulo?.[1] ? decodeURIComponent(titulo[1]) : '',
-            data: data?.[1] || '',
-            local: local?.[1] ? decodeURIComponent(local[1]) : ''
-          },
-          acoes: ['abrir_evento']
-        });
-      }
-
-      // 7. mailto
-      if (texto.startsWith('mailto:')) {
-        const email = texto.match(/mailto:([^?]+)/);
-        const subject = texto.match(/subject=([^&]+)/);
-        const body = texto.match(/body=([^&]+)/);
-        tipos.push({
-          tipo: 'email',
-          icone: '📧',
-          label: 'E-mail',
-          cor: '#d64545',
-          dados: {
-            email: email?.[1] || '',
-            assunto: subject?.[1] ? decodeURIComponent(subject[1]) : '',
-            mensagem: body?.[1] ? decodeURIComponent(body[1]) : ''
-          },
-          acoes: ['abrir_email']
-        });
-      }
-
-      // 8. tel:
-      if (texto.startsWith('tel:')) {
-        const numero = texto.replace('tel:', '');
-        tipos.push({
-          tipo: 'telefone',
-          icone: '📞',
-          label: 'Telefone',
-          cor: '#28a745',
-          dados: { numero: numero },
-          acoes: ['ligar']
-        });
-      }
-
-      // 9. sms:
-      if (texto.startsWith('sms:')) {
-        const numero = texto.match(/sms:([^?]+)/);
-        const body = texto.match(/body=([^&]+)/);
-        tipos.push({
-          tipo: 'sms',
-          icone: '✉️',
-          label: 'SMS',
-          cor: '#17a2b8',
-          dados: {
-            numero: numero?.[1] || '',
-            mensagem: body?.[1] ? decodeURIComponent(body[1]) : ''
-          },
-          acoes: ['abrir_sms']
-        });
-      }
-
-      // 10. geo:
-      if (texto.startsWith('geo:')) {
-        const coords = texto.replace('geo:', '');
-        tipos.push({
-          tipo: 'geo',
-          icone: '🌍',
-          label: 'Coordenadas',
-          cor: '#fd7e14',
-          dados: { coordenadas: coords },
-          acoes: ['abrir_geo']
-        });
-      }
-
-      // 11. URL (se nenhum dos acima)
-      if (texto.match(/^https?:\/\//) && tipos.length === 0) {
-        tipos.push({
-          tipo: 'url',
-          icone: '🔗',
-          label: 'Link',
-          cor: '#4f6ef7',
-          dados: { url: texto },
-          acoes: ['abrir_url']
-        });
-      }
-
-      // 12. Texto puro (se nenhum dos acima)
-      if (tipos.length === 0) {
-        tipos.push({
-          tipo: 'texto',
-          icone: '📝',
-          label: 'Texto',
-          cor: '#6b7280',
-          acoes: ['copiar']
-        });
-      }
-
-      return tipos[0];
-    }
-
-    // ===== FUNÇÃO PARA GERAR BOTÕES DE AÇÃO DO RESULTADO =====
-    function gerarBotoesAcao(tipo, texto) {
-      const container = document.getElementById('leitorBotoes');
-      if (!container) return;
-
-      container.innerHTML = '';
-
-      // Define ações baseadas no tipo
-      const acoes = {
-        'salvar_contato': {
-          texto: '👤 Salvar',
-          cor: '#6f42c1',
-          corTexto: 'white',
-          acao: () => salvarContatoVCard(texto)
-        },
-        'copiar_senha': {
-          texto: '🔑 Copiar',
-          cor: '#1a2a6c',
-          corTexto: 'white',
-          acao: () => {
-            const senha = tipo.dados?.senha || '';
-            if (senha) {
-              navigator.clipboard.writeText(senha).then(() => {
-                mostrarModal('✅', 'Senha Copiada!', 'A senha do Wi-Fi foi copiada.', 'success');
-              }).catch(() => {
-                mostrarModal('⚠️', 'Erro', 'Não foi possível copiar a senha.', 'warning');
-              });
-            }
-          }
-        },
-        'mostrar_wifi': {
-          texto: '📶 Wi-Fi',
-          cor: '#1a2a6c',
-          corTexto: 'white',
-          acao: () => {
-            const { ssid, tipo: seg, senha } = tipo.dados || {};
-            mostrarModal('📶', 'Wi-Fi Detectado',
-              `Rede: ${ssid || 'N/A'}\nSegurança: ${seg || 'N/A'}\nSenha: ${senha || 'Sem senha'}`,
-              'info'
-            );
-          }
-        },
-        'abrir_whatsapp': {
-          texto: '💬 Abrir',
-          cor: '#25d366',
-          corTexto: 'white',
-          acao: () => window.open(texto, '_blank')
-        },
-        'abrir_instagram': {
-          texto: '@ Abrir',
-          cor: '#bc1888',
-          corTexto: 'white',
-          acao: () => window.open(texto, '_blank')
-        },
-        'abrir_maps': {
-          texto: '🗺️ Abrir',
-          cor: '#fd7e14',
-          corTexto: 'white',
-          acao: () => window.open(texto, '_blank')
-        },
-        'abrir_evento': {
-          texto: '📅 Abrir',
-          cor: '#e74c3c',
-          corTexto: 'white',
-          acao: () => window.open(texto, '_blank')
-        },
-        'abrir_email': {
-          texto: '📧 Abrir',
-          cor: '#d64545',
-          corTexto: 'white',
-          acao: () => window.open(texto, '_blank')
-        },
-        'ligar': {
-          texto: '📞 Ligar',
-          cor: '#28a745',
-          corTexto: 'white',
-          acao: () => window.open(texto, '_blank')
-        },
-        'abrir_sms': {
-          texto: '✉️ SMS',
-          cor: '#17a2b8',
-          corTexto: 'white',
-          acao: () => window.open(texto, '_blank')
-        },
-        'abrir_geo': {
-          texto: '🌍 Abrir',
-          cor: '#fd7e14',
-          corTexto: 'white',
-          acao: () => {
-            const coords = tipo.dados?.coordenadas || '';
-            window.open(`https://www.google.com/maps/search/?api=1&query=${coords}`, '_blank');
-          }
-        },
-        'abrir_url': {
-          texto: '🔗 Abrir',
-          cor: '#4f6ef7',
-          corTexto: 'white',
-          acao: () => window.open(texto, '_blank')
-        },
-        'copiar': {
-          texto: '📋 Copiar',
-          cor: '#BFDBFE',
-          corTexto: '#1E3A8A',
-          acao: () => {
-            navigator.clipboard.writeText(texto).then(() => {
-              mostrarModal('✅', 'Copiado!', 'Texto copiado para área de transferência.', 'success');
-            }).catch(() => {
-              mostrarModal('⚠️', 'Erro', 'Não foi possível copiar o texto.', 'warning');
-            });
-          }
-        }
-      };
-
-      // Adiciona botões de ação específicos
-      tipo.acoes.forEach(acaoKey => {
-        const config = acoes[acaoKey];
-        if (!config) return;
-
-        const btn = document.createElement('button');
-        btn.textContent = config.texto;
-        btn.style.cssText = `
-          flex: 1;
-          min-width: 70px;
-          padding: 10px 6px;
-          border: none;
-          border-radius: 10px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
-          background: ${config.cor};
-          color: ${config.corTexto || 'white'};
-        `;
-        btn.onclick = config.acao;
-        container.appendChild(btn);
-      });
-
-      // Adiciona botão "Ler" (único botão para ler outro QR Code)
-      const btnLerOutro = document.createElement('button');
-      btnLerOutro.textContent = '🔍 Ler';
-      btnLerOutro.style.cssText = `
-        flex: 1;
-        min-width: 70px;
-        padding: 10px 6px;
-        border: none;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-        background: #1a2a6c;
-        color: white;
-      `;
-      btnLerOutro.onclick = function() {
-        reiniciarLeitor();
-      };
-      container.appendChild(btnLerOutro);
-    }
-
-    // ===== REINICIAR LEITOR =====
-    function reiniciarLeitor() {
-      pararLeitor();
-      leitorResultadoProcessado = false;
-      leitorResultado = null;
-
-      // Limpa o resultado anterior
-      const resultadoDiv = document.getElementById('leitorResultado');
-      resultadoDiv.style.display = 'none';
-      resultadoDiv.innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
-      document.getElementById('leitorTexto').textContent = '';
-
-      // Usa a função centralizada para criar os botões (apenas Iniciar)
-      criarBotoesLeitor(true, '🔍 Iniciar', function() { toggleLeitor(); });
-
-      // Volta o placeholder
-      const placeholder = document.getElementById('leitorPlaceholder');
-      if (placeholder) placeholder.style.display = 'block';
-
-      // Aguarda um pouco e inicia automaticamente
-      setTimeout(() => {
-        iniciarLeitor();
-      }, 500);
-    }
-
-    // ===== FUNÇÃO PRINCIPAL DO LEITOR =====
-    function processarResultadoLeitor(textoLido) {
-      leitorResultado = textoLido;
-      leitorResultadoProcessado = true;
-
-      // Detecta o tipo do QR Code
-      const tipo = detectarTipoQR(textoLido);
-
-      const resultadoDiv = document.getElementById('leitorResultado');
-      resultadoDiv.style.display = 'block';
-      resultadoDiv.style.borderLeftColor = tipo.cor;
-
-      // Monta a mensagem de resultado
-      let html = `<strong>${tipo.label} Detectado!</strong><br>`;
-
-      // Mostra dados específicos baseado no tipo
-      if (tipo.dados) {
-        switch (tipo.tipo) {
-          case 'vcard':
-            const nome = textoLido.match(/FN:([^\n]+)/);
-            const tel = textoLido.match(/TEL:([^\n]+)/);
-            const email = textoLido.match(/EMAIL:([^\n]+)/);
-            const org = textoLido.match(/ORG:([^\n]+)/);
-            html += `<span style="font-size:13px;color:#6b7280;">
-            Nome: ${nome?.[1] || 'N/A'}<br>
-            Telefone: ${tel?.[1] || 'N/A'}<br>
-            E-mail: ${email?.[1] || 'N/A'}<br>
-            ${org ? `Empresa: ${org[1]}` : ''}<br>
-          </span>
-          <span style="font-size:12px;color:#6f42c1;font-weight:600;display:block;margin-top:6px;">
-            💡 Clique em "Salvar Contato" para baixar o arquivo .vcf
-          </span>`;
-            break;
-          case 'wifi':
-            const { ssid, tipo: seg, senha } = tipo.dados;
-            html += `<span style="font-size:13px;color:#6b7280;">
-            Rede: ${ssid || 'N/A'}<br>
-            Segurança: ${seg || 'N/A'}<br>
-            Senha: ${senha ? '••••••••' : 'Sem senha'}
-          </span>`;
-            break;
-          case 'whatsapp':
-            html += `<span style="font-size:13px;color:#6b7280;">
-            Número: ${tipo.dados.numero || 'N/A'}
-          </span>`;
-            break;
-          case 'instagram':
-            html += `<span style="font-size:13px;color:#6b7280;">
-            @${tipo.dados.usuario || 'N/A'}
-          </span>`;
-            break;
-          case 'maps':
-            html += `<span style="font-size:13px;color:#6b7280;">
-            📍 ${tipo.dados.endereco || 'N/A'}
-          </span>`;
-            break;
-          case 'evento':
-            const { titulo, data, local } = tipo.dados;
-            html += `<span style="font-size:13px;color:#6b7280;">
-            ${titulo || 'Evento'}<br>
-            ${data ? `📆 ${data}` : ''}<br>
-            ${local ? `📍 ${local}` : ''}
-          </span>`;
-            break;
-          case 'email':
-            const { email: dest, assunto, mensagem } = tipo.dados;
-            html += `<span style="font-size:13px;color:#6b7280;">
-            Para: ${dest || 'N/A'}<br>
-            Assunto: ${assunto || 'N/A'}<br>
-            ${mensagem ? `Mensagem: ${mensagem.substring(0, 50)}${mensagem.length > 50 ? '...' : ''}` : ''}
-          </span>`;
-            break;
-          case 'telefone':
-            html += `<span style="font-size:13px;color:#6b7280;">
-            📞 ${tipo.dados.numero || 'N/A'}
-          </span>`;
-            break;
-          case 'sms':
-            html += `<span style="font-size:13px;color:#6b7280;">
-            Para: ${tipo.dados.numero || 'N/A'}<br>
-            ${tipo.dados.mensagem ? `Mensagem: ${tipo.dados.mensagem.substring(0, 50)}${tipo.dados.mensagem.length > 50 ? '...' : ''}` : ''}
-          </span>`;
-            break;
-          case 'geo':
-            html += `<span style="font-size:13px;color:#6b7280;">
-            🌍 Coordenadas: ${tipo.dados.coordenadas || 'N/A'}
-          </span>`;
-            break;
-          case 'url':
-            html += `<span style="font-size:13px;color:#6b7280;">
-            ${tipo.dados.url || 'N/A'}
-          </span>`;
-            break;
-          default:
-            html += `<span style="font-size:13px;color:#6b7280;">Conteúdo detectado com sucesso!</span>`;
-        }
-      }
-
-      resultadoDiv.innerHTML = html;
-
-      // Gera os botões de ação
-      gerarBotoesAcao(tipo, textoLido);
-    }
-
-    // ===== LEITOR DE QR CODE (MODAL) =====
-    function carregarJsQR() {
-      return new Promise((resolve, reject) => {
-        if (typeof jsQR !== 'undefined') {
-          resolve();
-          return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Falha ao carregar jsQR'));
-        document.head.appendChild(script);
-      });
-    }
-
-    function toggleLeitor() {
-      if (leitorAtivo) {
-        pararLeitor();
-        // Atualiza o botão para "Iniciar"
-        const btn = document.getElementById('btnLeitorToggle');
-        if (btn) btn.textContent = '🔍 Iniciar';
-      } else {
-        iniciarLeitor();
-      }
-    }
-
-    async function iniciarLeitor() {
-      const video = document.getElementById('leitorVideo');
-      const placeholder = document.getElementById('leitorPlaceholder');
-      const resultadoDiv = document.getElementById('leitorResultado');
-
-      // Limpa resultado anterior
-      resultadoDiv.style.display = 'none';
-      resultadoDiv.innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
-      document.getElementById('leitorTexto').textContent = '';
-      leitorResultado = null;
-      leitorResultadoProcessado = false;
-
-      // Usa a função centralizada para criar os botões (apenas Iniciar com texto "Parar")
-      criarBotoesLeitor(true, '⏹️ Parar', function() { toggleLeitor(); });
-
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        mostrarModal('❌', 'Não Suportado', 'Seu navegador não permite acesso à câmera.', 'danger');
-        return;
-      }
-
-      try {
-        leitorStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
-        });
-      } catch (e) {
-        mostrarModal('⚠️', 'Câmera Bloqueada', 'Permita o acesso à câmera nas configurações do navegador.', 'warning');
-        return;
-      }
-
-      video.srcObject = leitorStream;
-      video.style.display = 'block';
-      placeholder.style.display = 'none';
-      leitorAtivo = true;
-
-      try {
-        await video.play();
-      } catch (e) {}
-
-      const usaBarcodeDetector = 'BarcodeDetector' in window;
-      let detector = null;
-      if (usaBarcodeDetector) {
-        try {
-          detector = new BarcodeDetector({ formats: ['qr_code'] });
-        } catch (e) {
-          detector = null;
-        }
-      }
-
-      if (!detector) {
-        try {
-          await carregarJsQR();
-        } catch (e) {
-          pararLeitor();
-          mostrarModal('❌', 'Erro', 'Não foi possível carregar o leitor de QR Code.', 'danger');
-          return;
-        }
-      }
-
-      const leitorCanvas = document.createElement('canvas');
-      const leitorCtx = leitorCanvas.getContext('2d', { willReadFrequently: true });
-
-      const lerFrame = async () => {
-        if (!leitorAtivo) return;
-
-        if (video.readyState !== video.HAVE_ENOUGH_DATA) {
-          leitorAnimId = requestAnimationFrame(lerFrame);
-          return;
-        }
-
-        leitorCanvas.width = video.videoWidth;
-        leitorCanvas.height = video.videoHeight;
-        leitorCtx.drawImage(video, 0, 0, leitorCanvas.width, leitorCanvas.height);
-
-        let textoLido = null;
-
-        if (detector) {
-          try {
-            const codigos = await detector.detect(leitorCanvas);
-            if (codigos.length > 0) textoLido = codigos[0].rawValue;
-          } catch (e) {}
-        } else if (typeof jsQR !== 'undefined') {
-          const imageData = leitorCtx.getImageData(0, 0, leitorCanvas.width, leitorCanvas.height);
-          const resultado = jsQR(imageData.data, imageData.width, imageData.height);
-          if (resultado) textoLido = resultado.data;
-        }
-
-        if (textoLido && !leitorResultadoProcessado) {
-          pararLeitor();
-          processarResultadoLeitor(textoLido);
-          return;
-        }
-
-        leitorAnimId = requestAnimationFrame(lerFrame);
-      };
-
-      leitorAnimId = requestAnimationFrame(lerFrame);
-    }
-
-    function pararLeitor() {
-      leitorAtivo = false;
-
-      if (leitorAnimId) {
-        cancelAnimationFrame(leitorAnimId);
-        leitorAnimId = null;
-      }
-
-      if (leitorStream) {
-        leitorStream.getTracks().forEach(track => track.stop());
-        leitorStream = null;
-      }
-
-      const video = document.getElementById('leitorVideo');
-      if (video) {
-        video.pause();
-        video.srcObject = null;
-        video.style.display = 'none';
-      }
-
-      const placeholder = document.getElementById('leitorPlaceholder');
-      if (placeholder) placeholder.style.display = 'block';
-
-      // Atualiza o botão para "Iniciar" se existir
-      const btn = document.getElementById('btnLeitorToggle');
-      if (btn) btn.textContent = '🔍 Iniciar';
-    }
-
-    function copiarLeitor() {
-      if (!leitorResultado) return;
-
-      if (!navigator.clipboard) {
-        mostrarModal('⚠️', 'Não Suportado', 'Copiar automaticamente não é suportado neste navegador.', 'warning');
-        return;
-      }
-
-      navigator.clipboard.writeText(leitorResultado).then(() => {
-        mostrarModal('✅', 'Copiado!', 'O conteúdo foi copiado para a área de transferência.', 'success');
-      }).catch(() => {
-        mostrarModal('⚠️', 'Erro', 'Não foi possível copiar automaticamente.', 'warning');
-      });
-    }
-
-    function abrirLeitorResultado() {
-      if (!leitorResultado) return;
-
-      if (leitorResultado.startsWith('http://') || leitorResultado.startsWith('https://')) {
-        window.open(leitorResultado, '_blank');
-      } else {
-        mostrarModal('ℹ️', 'Não é um Link', 'O conteúdo lido não é uma URL para abrir no navegador.', 'info');
-      }
-    }
-
-    // ===== PWA: REGISTRO DO SERVICE WORKER =====
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        // Usa caminho relativo para maior flexibilidade
-        const swPath = window.location.pathname.includes('/qrcode/') ? './sw.js' : '/qrcode/sw.js';
-        navigator.serviceWorker.register(swPath)
-          .then((reg) => console.log('Service Worker registrado:', reg.scope))
-          .catch((err) => console.error('Falha ao registrar Service Worker:', err));
-      });
-    }
-
-    // ===== PWA: INSTALL PROMPT =====
-    let deferredPrompt;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      console.log('📱 App pode ser instalado!');
-    });
-
-    window.addEventListener('online', () => {
-      document.getElementById('offlineBanner').classList.remove('visible');
-    });
-
-    window.addEventListener('offline', () => {
-      document.getElementById('offlineBanner').classList.add('visible');
-    });
-
-    // ===== EVENTOS =====
-    window.onload = function() {
-  toggleSenhaWifi();
-
-  if (!navigator.onLine) {
-    document.getElementById('offlineBanner').classList.add('visible');
-  }
-
-  const agora = new Date();
-  const dataAtual = agora.toISOString().split('T')[0];
-  const horaAtual = agora.toTimeString().slice(0, 5);
-  document.getElementById('evento-data').value = dataAtual;
-  document.getElementById('evento-hora').value = horaAtual;
-
-  carregarDados();
-
-  document.getElementById('linkInput').addEventListener('keypress', e => {
-    if (e.key === 'Enter') gerarSite();
-  });
-
-  document.querySelectorAll('.tab-content').forEach(tab => {
-    const geradores = {
-      'tab-site': gerarSite,
-      'tab-wifi': gerarWifi,
-      'tab-texto': gerarTexto,
-      'tab-email': gerarEmail,
-      'tab-evento': gerarEvento,
-      'tab-instagram': gerarInstagram,
-      'tab-whatsapp': gerarWhatsapp,
-      'tab-contato': gerarContato,
-      'tab-local': gerarLocalizacao
-    };
-    const gerar = geradores[tab.id];
-    if (!gerar) return;
-    tab.querySelectorAll('input, select').forEach(el => {
-      el.addEventListener('keypress', e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          gerar();
-        }
-      });
-    });
-  });
-
-  window.addEventListener('beforeunload', salvarDados);
+// ===== FUNÇÕES DO MODAL =====
+function mostrarModal(icone, titulo, mensagem, tipoBotao = 'primary') {
+document.getElementById('modalIcon').textContent = icone;
+document.getElementById('modalTitle').textContent = titulo;
+document.getElementById('modalMessage').textContent = mensagem;
+
+const btn = document.getElementById('modalBtn');
+btn.className = 'modal-btn ' + tipoBotao;
+
+document.getElementById('modalOverlay').classList.add('ativo');
+}
+
+function fecharModal() {
+document.getElementById('modalOverlay').classList.remove('ativo');
+}
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+if (e.target === this) {
+fecharModal();
+}
+});
+
+document.addEventListener('keydown', function(e) {
+if (e.key === 'Escape') {
+fecharModal();
+}
+});
+
+// ===== MAPA DE NOMES DAS ABAS =====
+const NOMES_ABAS = {
+'tab-site': '🌐 Site',
+'tab-wifi': '📶 Wi-Fi',
+'tab-texto': '📝 Texto',
+'tab-email': '📧 E-mail',
+'tab-evento': '📅 Evento',
+'tab-instagram': '@ Instagram',
+'tab-whatsapp': '💬 WhatsApp',
+'tab-contato': '👤 Contato',
+'tab-local': '📍 Local'
 };
-  </script>
+
+const LABELS_ABAS = {
+'tab-site': '🔗 Link',
+'tab-wifi': '📶 Rede Wi-Fi',
+'tab-texto': '📝 Texto',
+'tab-email': '📧 E-mail',
+'tab-evento': '📅 Evento/Agenda',
+'tab-instagram': '@ Instagram',
+'tab-whatsapp': '💬 WhatsApp',
+'tab-contato': '👤 Contato',
+'tab-local': '📍 Localização'
+};
+
+// ===== FUNÇÕES DE LOCALSTORAGE =====
+function salvarDados() {
+const dados = {
+siteUrl: document.getElementById('linkInput').value,
+siteQR: document.getElementById('infoSite').textContent,
+siteGerado: document.getElementById('infoSite').textContent !== 'Nenhum QR Code gerado',
+
+wifiSsid: document.getElementById('wifi-ssid').value,
+wifiSenha: document.getElementById('wifi-senha').value,
+wifiTipo: document.getElementById('wifi-tipo').value,
+wifiQR: document.getElementById('infoWifi').textContent,
+wifiGerado: document.getElementById('infoWifi').textContent !== 'Nenhum QR Code gerado',
+wifiPreviewVisible: document.getElementById('wifiPreview').style.display !== 'none',
+
+textoConteudo: document.getElementById('texto-conteudo').value,
+textoQR: document.getElementById('infoTexto').textContent,
+textoGerado: document.getElementById('infoTexto').textContent !== 'Nenhum QR Code gerado',
+
+emailDestino: document.getElementById('email-destino').value,
+emailAssunto: document.getElementById('email-assunto').value,
+emailMensagem: document.getElementById('email-mensagem').value,
+emailQR: document.getElementById('infoEmail').textContent,
+emailGerado: document.getElementById('infoEmail').textContent !== 'Nenhum QR Code gerado',
+
+eventoTitulo: document.getElementById('evento-titulo').value,
+eventoData: document.getElementById('evento-data').value,
+eventoHora: document.getElementById('evento-hora').value,
+eventoLocal: document.getElementById('evento-local').value,
+eventoDescricao: document.getElementById('evento-descricao').value,
+eventoQR: document.getElementById('infoEvento').textContent,
+eventoGerado: document.getElementById('infoEvento').textContent !== 'Nenhum QR Code gerado',
+eventoPreviewVisible: document.getElementById('eventoPreview').style.display !== 'none',
+
+instagramUsuario: document.getElementById('instagram-usuario').value,
+instagramQR: document.getElementById('infoInstagram').textContent,
+instagramGerado: document.getElementById('infoInstagram').textContent !== 'Nenhum QR Code gerado',
+
+whatsNumero: document.getElementById('whats-numero').value,
+whatsMensagem: document.getElementById('whats-mensagem').value,
+whatsQR: document.getElementById('infoWhatsapp').textContent,
+whatsGerado: document.getElementById('infoWhatsapp').textContent !== 'Nenhum QR Code gerado',
+
+contatoNome: document.getElementById('contato-nome').value,
+contatoTelefone: document.getElementById('contato-telefone').value,
+contatoEmail: document.getElementById('contato-email').value,
+contatoEmpresa: document.getElementById('contato-empresa').value,
+contatoQR: document.getElementById('infoContato').textContent,
+contatoGerado: document.getElementById('infoContato').textContent !== 'Nenhum QR Code gerado',
+
+localEndereco: document.getElementById('local-endereco').value,
+localQR: document.getElementById('infoLocal').textContent,
+localGerado: document.getElementById('infoLocal').textContent !== 'Nenhum QR Code gerado',
+
+abaAtual: abaAtual
+};
+
+localStorage.setItem('qrAppDados', JSON.stringify(dados));
+}
+
+function carregarDados() {
+const dadosSalvos = localStorage.getItem('qrAppDados');
+if (!dadosSalvos) return;
+
+try {
+const dados = JSON.parse(dadosSalvos);
+
+document.getElementById('linkInput').value = dados.siteUrl || '';
+if (dados.siteGerado && dados.siteQR && dados.siteQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-site', dados.siteQR);
+document.getElementById('infoSite').textContent = dados.siteQR;
+}
+
+document.getElementById('wifi-ssid').value = dados.wifiSsid || '';
+document.getElementById('wifi-senha').value = dados.wifiSenha || '';
+document.getElementById('wifi-tipo').value = dados.wifiTipo || 'WPA';
+toggleSenhaWifi();
+if (dados.wifiGerado && dados.wifiQR && dados.wifiQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-wifi', dados.wifiQR);
+document.getElementById('infoWifi').textContent = dados.wifiQR;
+if (dados.wifiPreviewVisible) {
+const preview = document.getElementById('wifiPreview');
+document.getElementById('wifiPreviewSsid').textContent = dados.wifiSsid || '';
+document.getElementById('wifiPreviewTipo').textContent = dados.wifiTipo === 'nopass' ? 'Aberta' : (dados
+.wifiTipo || 'WPA');
+document.getElementById('wifiPreviewSenha').textContent = dados.wifiTipo === 'nopass' ? '—' : (dados
+.wifiSenha || '(vazia)');
+preview.style.display = 'block';
+}
+}
+
+document.getElementById('texto-conteudo').value = dados.textoConteudo || '';
+if (dados.textoGerado && dados.textoQR && dados.textoQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-texto', dados.textoQR);
+document.getElementById('infoTexto').textContent = dados.textoQR;
+}
+
+document.getElementById('email-destino').value = dados.emailDestino || '';
+document.getElementById('email-assunto').value = dados.emailAssunto || '';
+document.getElementById('email-mensagem').value = dados.emailMensagem || '';
+if (dados.emailGerado && dados.emailQR && dados.emailQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-email', dados.emailQR);
+document.getElementById('infoEmail').textContent = dados.emailQR;
+}
+
+document.getElementById('evento-titulo').value = dados.eventoTitulo || '';
+document.getElementById('evento-data').value = dados.eventoData || '';
+document.getElementById('evento-hora').value = dados.eventoHora || '';
+document.getElementById('evento-local').value = dados.eventoLocal || '';
+document.getElementById('evento-descricao').value = dados.eventoDescricao || '';
+if (dados.eventoGerado && dados.eventoQR && dados.eventoQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-evento', dados.eventoQR);
+document.getElementById('infoEvento').textContent = dados.eventoQR;
+if (dados.eventoPreviewVisible) {
+const preview = document.getElementById('eventoPreview');
+document.getElementById('eventoPreviewTitulo').textContent = dados.eventoTitulo || '';
+const dataHora = formatarDataHora(dados.eventoData || '', dados.eventoHora || '');
+document.getElementById('eventoPreviewDataHora').textContent = dataHora;
+document.getElementById('eventoPreviewLocal').textContent = dados.eventoLocal || '(local não informado)';
+preview.style.display = 'block';
+}
+}
+
+document.getElementById('instagram-usuario').value = dados.instagramUsuario || '';
+if (dados.instagramGerado && dados.instagramQR && dados.instagramQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-instagram', dados.instagramQR);
+document.getElementById('infoInstagram').textContent = dados.instagramQR;
+}
+
+document.getElementById('whats-numero').value = dados.whatsNumero || '';
+document.getElementById('whats-mensagem').value = dados.whatsMensagem || '';
+if (dados.whatsGerado && dados.whatsQR && dados.whatsQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-whatsapp', dados.whatsQR);
+document.getElementById('infoWhatsapp').textContent = dados.whatsQR;
+}
+
+document.getElementById('contato-nome').value = dados.contatoNome || '';
+document.getElementById('contato-telefone').value = dados.contatoTelefone || '';
+document.getElementById('contato-email').value = dados.contatoEmail || '';
+document.getElementById('contato-empresa').value = dados.contatoEmpresa || '';
+if (dados.contatoGerado && dados.contatoQR && dados.contatoQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-contato', dados.contatoQR);
+document.getElementById('infoContato').textContent = dados.contatoQR;
+}
+
+document.getElementById('local-endereco').value = dados.localEndereco || '';
+if (dados.localGerado && dados.localQR && dados.localQR !== 'Nenhum QR Code gerado') {
+renderizarQR('qrcode-local', dados.localQR);
+document.getElementById('infoLocal').textContent = dados.localQR;
+}
+
+if (dados.abaAtual) {
+const btnAtual = document.querySelector(`.tab-btn[data-tab="${dados.abaAtual}"]`);
+if (btnAtual) {
+trocarAba(btnAtual, dados.abaAtual);
+}
+}
+
+} catch (e) {
+console.error('Erro ao carregar dados:', e);
+}
+}
+
+// ===== FUNÇÕES DO APP =====
+let abaAtual = 'tab-site';
+let senhaAntiga = '12345678';
+
+// ===== ESTADO DO LEITOR =====
+let leitorStream = null;
+let leitorAnimId = null;
+let leitorAtivo = false;
+let leitorResultado = null;
+let leitorResultadoProcessado = false;
+
+const ABAS = {
+'tab-site': { qrId: 'qrcode-site', infoId: 'infoSite', arquivo: 'qrcode-site.png' },
+'tab-wifi': { qrId: 'qrcode-wifi', infoId: 'infoWifi', arquivo: 'qrcode-wifi.png' },
+'tab-texto': { qrId: 'qrcode-texto', infoId: 'infoTexto', arquivo: 'qrcode-texto.png' },
+'tab-email': { qrId: 'qrcode-email', infoId: 'infoEmail', arquivo: 'qrcode-email.png' },
+'tab-evento': { qrId: 'qrcode-evento', infoId: 'infoEvento', arquivo: 'qrcode-evento.png' },
+'tab-instagram': { qrId: 'qrcode-instagram', infoId: 'infoInstagram', arquivo: 'qrcode-instagram.png' },
+'tab-whatsapp': { qrId: 'qrcode-whatsapp', infoId: 'infoWhatsapp', arquivo: 'qrcode-whatsapp.png' },
+'tab-contato': { qrId: 'qrcode-contato', infoId: 'infoContato', arquivo: 'qrcode-contato.png' },
+'tab-local': { qrId: 'qrcode-local', infoId: 'infoLocal', arquivo: 'qrcode-local.png' }
+};
+
+// ===== FUNÇÃO CENTRALIZADA PARA CRIAR BOTÕES DO LEITOR =====
+function criarBotoesLeitor(mostrarIniciar = true, textoIniciar = '🔍 Iniciar', aoClicarIniciar = null) {
+const container = document.getElementById('leitorBotoes');
+container.innerHTML = '';
+
+// Botão Iniciar/Parar (opcional)
+if (mostrarIniciar) {
+const btn = document.createElement('button');
+btn.className = 'btn-leitor-camera';
+btn.id = 'btnLeitorToggle';
+btn.textContent = textoIniciar;
+btn.onclick = aoClicarIniciar || function() { toggleLeitor(); };
+container.appendChild(btn);
+}
+
+// Botão Copiar (sempre presente, mas oculto inicialmente)
+const btnCopiar = document.createElement('button');
+btnCopiar.className = 'btn-leitor-copiar';
+btnCopiar.id = 'btnCopiarLeitor';
+btnCopiar.textContent = '📋 Copiar';
+btnCopiar.style.display = 'none';
+btnCopiar.onclick = copiarLeitor;
+container.appendChild(btnCopiar);
+
+// Botão Abrir (sempre presente, mas oculto inicialmente)
+const btnAbrir = document.createElement('button');
+btnAbrir.className = 'btn-leitor-abrir';
+btnAbrir.id = 'btnAbrirLeitor';
+btnAbrir.textContent = '🔗 Abrir';
+btnAbrir.style.display = 'none';
+btnAbrir.onclick = abrirLeitorResultado;
+container.appendChild(btnAbrir);
+
+return container;
+}
+
+function trocarAba(botao, id) {
+abaAtual = id;
+document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ativo'));
+document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('ativo'));
+document.getElementById(id).classList.add('ativo');
+botao.classList.add('ativo');
+salvarDados();
+}
+
+function abrirLeitor() {
+document.getElementById('leitorModal').classList.add('ativo');
+// Reset do leitor ao abrir
+pararLeitor();
+leitorResultadoProcessado = false;
+leitorResultado = null;
+
+// Usa a função centralizada para criar os botões
+criarBotoesLeitor(true, '🔍 Iniciar', function() { toggleLeitor(); });
+
+// Mostra placeholder, esconde resultado
+document.getElementById('leitorPlaceholder').style.display = 'block';
+document.getElementById('leitorResultado').style.display = 'none';
+document.getElementById('leitorResultado').innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
+document.getElementById('leitorTexto').textContent = '';
+}
+
+function fecharLeitor() {
+pararLeitor();
+document.getElementById('leitorModal').classList.remove('ativo');
+}
+
+function toggleSenhaWifi() {
+const tipo = document.getElementById('wifi-tipo').value;
+const senhaInput = document.getElementById('wifi-senha');
+
+if (tipo === 'nopass') {
+senhaAntiga = senhaInput.value;
+senhaInput.disabled = true;
+senhaInput.value = '';
+senhaInput.placeholder = 'Sem senha';
+} else {
+senhaInput.disabled = false;
+senhaInput.placeholder = 'Senha';
+if (!senhaInput.value && senhaAntiga) {
+senhaInput.value = senhaAntiga;
+}
+}
+}
+
+function escaparWifi(texto) {
+return texto.replace(/\\/g, '\\\\')
+.replace(/;/g, '\\;')
+.replace(/,/g, '\\,')
+.replace(/:/g, '\\:')
+.replace(/"/g, '\\"')
+.replace(/'/g, "\\'")
+.replace(/&/g, '\\&');
+}
+
+function escaparVCard(texto) {
+return String(texto)
+.replace(/\\/g, '\\\\')
+.replace(/;/g, '\\;')
+.replace(/,/g, '\\,')
+.replace(/\n/g, '\\n');
+}
+
+function apenasDigitos(texto) {
+let limpo = texto.trim().replace(/[^\d+]/g, '');
+const comMais = limpo.startsWith('+');
+limpo = limpo.replace(/\+/g, '');
+return comMais ? '+' + limpo : limpo;
+}
+
+function formatarDataHora(data, hora) {
+if (!data) return '';
+const partes = data.split('-');
+const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+if (hora) {
+return `${dataFormatada} às ${hora}`;
+}
+return dataFormatada;
+}
+
+function renderizarQR(divId, texto) {
+const qr = document.getElementById(divId);
+qr.innerHTML = "";
+
+const qrObj = qrcode(0, 'M');
+qrObj.addData(String(texto));
+qrObj.make();
+
+const canvasExibicao = document.createElement('canvas');
+const tamanhoExibicao = 200;
+const tamanhoComBorda = tamanhoExibicao + 20;
+canvasExibicao.width = tamanhoComBorda;
+canvasExibicao.height = tamanhoComBorda;
+canvasExibicao.style.width = tamanhoComBorda + 'px';
+canvasExibicao.style.height = tamanhoComBorda + 'px';
+
+const ctx = canvasExibicao.getContext('2d');
+const cells = qrObj.getModuleCount();
+const cellSize = tamanhoExibicao / cells;
+
+ctx.imageSmoothingEnabled = false;
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(0, 0, tamanhoComBorda, tamanhoComBorda);
+
+const offset = 10;
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(offset, offset, tamanhoExibicao, tamanhoExibicao);
+
+ctx.fillStyle = '#000000';
+for (let row = 0; row < cells; row++) {
+for (let col = 0; col < cells; col++) {
+if (qrObj.isDark(row, col)) {
+ctx.fillRect(
+offset + Math.floor(col * cellSize),
+offset + Math.floor(row * cellSize),
+Math.ceil(cellSize),
+Math.ceil(cellSize)
+);
+}
+}
+}
+
+canvasExibicao.dataset.qrData = texto;
+qr.appendChild(canvasExibicao);
+}
+
+// ===== FUNÇÕES GERADORAS =====
+function gerarSite() {
+let url = document.getElementById('linkInput').value.trim();
+if (!url) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite um link para gerar o QR Code.', 'warning');
+return;
+}
+
+if (url.toLowerCase().startsWith('javascript:')) {
+mostrarModal('❌', 'URL Inválida', 'Esta URL não é permitida por motivos de segurança.', 'danger');
+return;
+}
+
+if (!url.startsWith('http://') && !url.startsWith('https://')) {
+url = 'https://' + url;
+document.getElementById('linkInput').value = url;
+}
+
+renderizarQR('qrcode-site', url);
+document.getElementById('infoSite').textContent = url;
+salvarDados();
+}
+
+function gerarWifi() {
+const ssid = document.getElementById('wifi-ssid').value.trim();
+let senha = document.getElementById('wifi-senha').value.trim();
+const tipo = document.getElementById('wifi-tipo').value;
+
+if (!ssid) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite o nome da rede Wi-Fi (SSID).', 'warning');
+return;
+}
+
+const ssidEscapado = escaparWifi(ssid);
+const senhaEscapada = escaparWifi(senha);
+
+let txt;
+if (tipo === 'nopass') {
+txt = `WIFI:T:nopass;S:${ssidEscapado};;`;
+} else {
+txt = `WIFI:T:${tipo};S:${ssidEscapado};`;
+if (senhaEscapada) txt += `P:${senhaEscapada};`;
+txt += ';';
+}
+
+renderizarQR('qrcode-wifi', txt);
+document.getElementById('infoWifi').textContent = txt;
+
+const preview = document.getElementById('wifiPreview');
+document.getElementById('wifiPreviewSsid').textContent = ssid;
+document.getElementById('wifiPreviewTipo').textContent = tipo === 'nopass' ? 'Aberta' : tipo;
+document.getElementById('wifiPreviewSenha').textContent = tipo === 'nopass' ? '—' : (senha || '(vazia)');
+preview.style.display = 'block';
+salvarDados();
+}
+
+function gerarTexto() {
+const texto = document.getElementById('texto-conteudo').value.trim();
+if (!texto) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite um texto para gerar o QR Code.', 'warning');
+return;
+}
+
+renderizarQR('qrcode-texto', texto);
+document.getElementById('infoTexto').textContent = texto;
+salvarDados();
+}
+
+function gerarEmail() {
+const destino = document.getElementById('email-destino').value.trim();
+const assunto = document.getElementById('email-assunto').value.trim();
+const mensagem = document.getElementById('email-mensagem').value.trim();
+
+if (!destino) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite o e-mail do destinatário.', 'warning');
+return;
+}
+
+let txt = `mailto:${destino}`;
+const params = [];
+if (assunto) params.push('subject=' + encodeURIComponent(assunto));
+if (mensagem) params.push('body=' + encodeURIComponent(mensagem));
+if (params.length) txt += '?' + params.join('&');
+
+renderizarQR('qrcode-email', txt);
+document.getElementById('infoEmail').textContent = txt;
+salvarDados();
+}
+
+function gerarEvento() {
+const titulo = document.getElementById('evento-titulo').value.trim();
+const data = document.getElementById('evento-data').value;
+const hora = document.getElementById('evento-hora').value;
+const local = document.getElementById('evento-local').value.trim();
+const descricao = document.getElementById('evento-descricao').value.trim();
+
+if (!titulo) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite o título do evento.', 'warning');
+return;
+}
+
+if (!data) {
+mostrarModal('⚠️', 'Campo Vazio', 'Selecione a data do evento.', 'warning');
+return;
+}
+
+if (!hora) {
+mostrarModal('⚠️', 'Campo Vazio', 'Selecione a hora do evento.', 'warning');
+return;
+}
+
+const [ano, mes, dia] = data.split('-').map(Number);
+const [h, m] = hora.split(':').map(Number);
+const inicio = new Date(ano, mes - 1, dia, h, m, 0);
+const fim = new Date(inicio.getTime() + 60 * 60 * 1000);
+
+const pad = n => String(n).padStart(2, '0');
+const formatarICS = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+
+const dataHoraInicio = formatarICS(inicio);
+const dataHoraFim = formatarICS(fim);
+
+let txt = `https://www.google.com/calendar/render?action=TEMPLATE`;
+txt += `&text=${encodeURIComponent(titulo)}`;
+txt += `&dates=${dataHoraInicio}/${dataHoraFim}`;
+if (local) txt += `&location=${encodeURIComponent(local)}`;
+if (descricao) txt += `&details=${encodeURIComponent(descricao)}`;
+
+renderizarQR('qrcode-evento', txt);
+
+const dataHoraFormatada = formatarDataHora(data, hora);
+document.getElementById('infoEvento').textContent = `${titulo} · ${dataHoraFormatada}${local ? ' · ' + local : ''}`;
+
+const preview = document.getElementById('eventoPreview');
+document.getElementById('eventoPreviewTitulo').textContent = titulo;
+document.getElementById('eventoPreviewDataHora').textContent = dataHoraFormatada;
+document.getElementById('eventoPreviewLocal').textContent = local || '(local não informado)';
+preview.style.display = 'block';
+salvarDados();
+}
+
+function gerarInstagram() {
+let usuario = document.getElementById('instagram-usuario').value.trim();
+
+if (!usuario) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite o usuário do Instagram.', 'warning');
+return;
+}
+
+usuario = usuario.replace(/^@/, '');
+usuario = usuario.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '');
+usuario = usuario.replace(/\/+$/, '');
+
+const url = `https://www.instagram.com/${usuario}/`;
+
+renderizarQR('qrcode-instagram', url);
+document.getElementById('infoInstagram').textContent = url;
+salvarDados();
+}
+
+function gerarWhatsapp() {
+const numero = document.getElementById('whats-numero').value.trim();
+const mensagem = document.getElementById('whats-mensagem').value.trim();
+if (!numero) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite um número de telefone para o WhatsApp.', 'warning');
+return;
+}
+
+const numeroLimpo = apenasDigitos(numero).replace('+', '');
+let txt = `https://wa.me/${numeroLimpo}`;
+if (mensagem) txt += `?text=${encodeURIComponent(mensagem)}`;
+
+renderizarQR('qrcode-whatsapp', txt);
+document.getElementById('infoWhatsapp').textContent = txt;
+salvarDados();
+}
+
+function gerarContato() {
+const nome = document.getElementById('contato-nome').value.trim();
+const telefone = document.getElementById('contato-telefone').value.trim();
+const email = document.getElementById('contato-email').value.trim();
+const empresa = document.getElementById('contato-empresa').value.trim();
+
+if (!nome) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite o nome do contato.', 'warning');
+return;
+}
+
+let txt = `BEGIN:VCARD\nVERSION:3.0\nFN:${escaparVCard(nome)}\nTEL:${escaparVCard(telefone)}`;
+if (email) txt += `\nEMAIL:${escaparVCard(email)}`;
+if (empresa) txt += `\nORG:${escaparVCard(empresa)}`;
+txt += `\nEND:VCARD`;
+
+renderizarQR('qrcode-contato', txt);
+document.getElementById('infoContato').textContent = `${nome}${telefone ? ' · ' + telefone : ''}${email ? ' · ' + email : ''}`;
+salvarDados();
+}
+
+function gerarLocalizacao() {
+const endereco = document.getElementById('local-endereco').value.trim();
+if (!endereco) {
+mostrarModal('⚠️', 'Campo Vazio', 'Digite um endereço ou local.', 'warning');
+return;
+}
+
+const txt = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
+renderizarQR('qrcode-local', txt);
+document.getElementById('infoLocal').textContent = endereco;
+salvarDados();
+}
+
+// ===== GERAÇÃO DO CANVAS EM ALTA RESOLUÇÃO =====
+function gerarCanvasQR(tamanho = 1024) {
+const config = ABAS[abaAtual];
+if (!config) return null;
+
+const div = document.getElementById(config.qrId);
+const canvasExibicao = div.querySelector('canvas');
+
+if (!canvasExibicao) {
+mostrarModal('⚠️', 'Nenhum QR Code', 'Gere um QR Code primeiro antes de continuar.', 'warning');
+return null;
+}
+
+const texto = canvasExibicao.dataset.qrData;
+if (!texto) {
+mostrarModal('❌', 'Erro', 'Dados do QR Code não encontrados. Tente gerar novamente.', 'danger');
+return null;
+}
+
+const qrObj = qrcode(0, 'M');
+qrObj.addData(String(texto));
+qrObj.make();
+
+const cells = qrObj.getModuleCount();
+const margemPercentual = 0.10;
+const margemPixels = Math.floor(tamanho * margemPercentual);
+const tamanhoQR = tamanho - (margemPixels * 2);
+const cellSize = tamanhoQR / cells;
+
+const canvasDownload = document.createElement('canvas');
+canvasDownload.width = tamanho;
+canvasDownload.height = tamanho;
+const ctx = canvasDownload.getContext('2d');
+
+ctx.imageSmoothingEnabled = false;
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(0, 0, tamanho, tamanho);
+
+ctx.fillStyle = '#000000';
+for (let row = 0; row < cells; row++) {
+for (let col = 0; col < cells; col++) {
+if (qrObj.isDark(row, col)) {
+ctx.fillRect(
+margemPixels + Math.floor(col * cellSize),
+margemPixels + Math.floor(row * cellSize),
+Math.ceil(cellSize),
+Math.ceil(cellSize)
+);
+}
+}
+}
+
+return canvasDownload;
+}
+
+function dataURLtoBlob(dataURL) {
+const [header, base64] = dataURL.split(',');
+const mime = header.match(/:(.*?);/)[1];
+const binario = atob(base64);
+const array = new Uint8Array(binario.length);
+for (let i = 0; i < binario.length; i++) {
+array[i] = binario.charCodeAt(i);
+}
+return new Blob([array], { type: mime });
+}
+
+// ===== DOWNLOAD =====
+function baixarPNG() {
+const config = ABAS[abaAtual];
+if (!config) return;
+
+const canvasDownload = gerarCanvasQR();
+if (!canvasDownload) return;
+
+const link = document.createElement('a');
+link.download = config.arquivo;
+link.href = canvasDownload.toDataURL('image/png');
+link.click();
+}
+
+// ===== COMPARTILHAR =====
+function compartilharQR() {
+const config = ABAS[abaAtual];
+if (!config) return;
+
+const canvasDownload = gerarCanvasQR();
+if (!canvasDownload) return;
+
+const dataUrl = canvasDownload.toDataURL('image/png');
+const nomeAba = LABELS_ABAS[abaAtual] || 'QR Code';
+const emoji = NOMES_ABAS[abaAtual] || '📱';
+
+if (navigator.share) {
+const blob = dataURLtoBlob(dataUrl);
+const file = new File([blob], config.arquivo, { type: 'image/png' });
+
+if (navigator.canShare && navigator.canShare({ files: [file] })) {
+navigator.share({
+files: [file],
+title: `${emoji} ${nomeAba}`,
+text: `📱 QR Code: ${nomeAba}\n\nEscaneie este QR Code para acessar o conteúdo.`
+}).catch((err) => {
+if (err.name !== 'AbortError') {
+compartilharComoTexto(nomeAba, emoji);
+}
+});
+return;
+}
+}
+
+compartilharComoTexto(nomeAba, emoji);
+}
+
+function compartilharComoTexto(nomeAba, emoji) {
+const config = ABAS[abaAtual];
+if (!config) return;
+
+const canvasDownload = gerarCanvasQR();
+if (!canvasDownload) return;
+
+const dataUrl = canvasDownload.toDataURL('image/png');
+
+let conteudoDesc = '';
+switch (abaAtual) {
+case 'tab-site':
+conteudoDesc = document.getElementById('linkInput').value.trim() || 'Site';
+break;
+case 'tab-wifi':
+conteudoDesc = `Rede: ${document.getElementById('wifi-ssid').value.trim() || 'Wi-Fi'}`;
+break;
+case 'tab-texto':
+conteudoDesc = document.getElementById('texto-conteudo').value.trim() || 'Texto';
+break;
+case 'tab-email':
+conteudoDesc = `E-mail: ${document.getElementById('email-destino').value.trim() || 'Destinatário'}`;
+break;
+case 'tab-evento':
+conteudoDesc = document.getElementById('evento-titulo').value.trim() || 'Evento';
+break;
+case 'tab-instagram':
+conteudoDesc = `@${document.getElementById('instagram-usuario').value.trim() || 'Instagram'}`;
+break;
+case 'tab-whatsapp':
+conteudoDesc = `WhatsApp: ${document.getElementById('whats-numero').value.trim() || 'Número'}`;
+break;
+case 'tab-contato':
+conteudoDesc = document.getElementById('contato-nome').value.trim() || 'Contato';
+break;
+case 'tab-local':
+conteudoDesc = document.getElementById('local-endereco').value.trim() || 'Localização';
+break;
+default:
+conteudoDesc = 'QR Code';
+}
+
+const textoSha = `${emoji} ${nomeAba}\n\n📌 ${conteudoDesc}\n\n🔗 Escaneie o QR Code para acessar o conteúdo.`;
+
+if (navigator.share) {
+navigator.share({
+title: `${emoji} ${nomeAba}`,
+text: textoSha,
+url: dataUrl
+}).catch((err) => {
+if (err.name !== 'AbortError') {
+baixarPNG();
+}
+});
+} else {
+baixarPNG();
+}
+}
+
+// ===== LIMPAR =====
+function limparTudo() {
+Object.values(ABAS).forEach(cfg => {
+document.getElementById(cfg.qrId).innerHTML = '';
+document.getElementById(cfg.infoId).textContent = 'Nenhum QR Code gerado';
+});
+
+document.getElementById('linkInput').value = '';
+document.getElementById('urlErro').classList.remove('visivel');
+document.getElementById('linkInput').classList.remove('erro');
+
+document.getElementById('wifi-ssid').value = '';
+document.getElementById('wifi-senha').value = '';
+document.getElementById('wifi-tipo').value = 'WPA';
+document.getElementById('wifiPreview').style.display = 'none';
+toggleSenhaWifi();
+
+document.getElementById('texto-conteudo').value = '';
+document.getElementById('email-destino').value = '';
+document.getElementById('email-assunto').value = '';
+document.getElementById('email-mensagem').value = '';
+document.getElementById('evento-titulo').value = '';
+document.getElementById('evento-data').value = '';
+document.getElementById('evento-hora').value = '';
+document.getElementById('evento-local').value = '';
+document.getElementById('evento-descricao').value = '';
+document.getElementById('eventoPreview').style.display = 'none';
+
+document.getElementById('instagram-usuario').value = '';
+document.getElementById('whats-numero').value = '';
+document.getElementById('whats-mensagem').value = '';
+document.getElementById('contato-nome').value = '';
+document.getElementById('contato-telefone').value = '';
+document.getElementById('contato-email').value = '';
+document.getElementById('contato-empresa').value = '';
+document.getElementById('local-endereco').value = '';
+
+localStorage.removeItem('qrAppDados');
+
+mostrarModal('🗑️', 'Tudo Limpo!', 'Todos os campos e QR Codes foram limpos.', 'info');
+}
+
+// ===== SALVAR CONTATO VCARD =====
+function salvarContatoVCard(vcardTexto) {
+const blob = new Blob([vcardTexto], { type: 'text/vcard;charset=utf-8' });
+const link = document.createElement('a');
+link.href = URL.createObjectURL(blob);
+
+let nomeArquivo = 'contato.vcf';
+const nomeMatch = vcardTexto.match(/FN:(.+?)(?:\n|$)/);
+if (nomeMatch) {
+nomeArquivo = nomeMatch[1].trim().replace(/[^a-zA-Z0-9]/g, '_') + '.vcf';
+}
+
+link.download = nomeArquivo;
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+URL.revokeObjectURL(link.href);
+}
+
+// ===== DETECTOR DE TIPOS DE QR CODE =====
+function detectarTipoQR(texto) {
+const tipos = [];
+
+// 1. vCard
+if (texto.trim().startsWith('BEGIN:VCARD')) {
+tipos.push({
+tipo: 'vcard',
+icone: '👤',
+label: 'Contato',
+cor: '#6f42c1',
+acoes: ['salvar_contato']
+});
+}
+
+// 2. Wi-Fi
+if (texto.trim().startsWith('WIFI:')) {
+const ssid = texto.match(/S:([^;]+)/);
+const tipoSeg = texto.match(/T:([^;]+)/);
+const senha = texto.match(/P:([^;]+)/);
+tipos.push({
+tipo: 'wifi',
+icone: '📶',
+label: 'Wi-Fi',
+cor: '#1a2a6c',
+dados: { ssid: ssid?.[1] || '', tipo: tipoSeg?.[1] || '', senha: senha?.[1] || '' },
+acoes: ['copiar_senha', 'mostrar_wifi']
+});
+}
+
+// 3. WhatsApp
+if (texto.match(/^https?:\/\/wa\.me\//)) {
+const numero = texto.match(/wa\.me\/(\d+)/);
+tipos.push({
+tipo: 'whatsapp',
+icone: '💬',
+label: 'WhatsApp',
+cor: '#25d366',
+dados: { numero: numero?.[1] || '' },
+acoes: ['abrir_whatsapp']
+});
+}
+
+// 4. Instagram
+if (texto.match(/^https?:\/\/(www\.)?instagram\.com\//)) {
+const usuario = texto.match(/instagram\.com\/([^/]+)/);
+tipos.push({
+tipo: 'instagram',
+icone: '📸',
+label: 'Instagram',
+cor: '#bc1888',
+dados: { usuario: usuario?.[1] || '' },
+acoes: ['abrir_instagram']
+});
+}
+
+// 5. Google Maps
+if (texto.match(/^https?:\/\/www\.google\.com\/maps\//)) {
+const query = texto.match(/query=([^&]+)/);
+tipos.push({
+tipo: 'maps',
+icone: '📍',
+label: 'Localização',
+cor: '#fd7e14',
+dados: { endereco: query?.[1] ? decodeURIComponent(query[1]) : '' },
+acoes: ['abrir_maps']
+});
+}
+
+// 6. Evento Google Calendar
+if (texto.match(/^https?:\/\/www\.google\.com\/calendar\/render\?action=TEMPLATE/)) {
+const titulo = texto.match(/text=([^&]+)/);
+const data = texto.match(/dates=([^/]+)/);
+const local = texto.match(/location=([^&]+)/);
+tipos.push({
+tipo: 'evento',
+icone: '📅',
+label: 'Evento',
+cor: '#e74c3c',
+dados: {
+titulo: titulo?.[1] ? decodeURIComponent(titulo[1]) : '',
+data: data?.[1] || '',
+local: local?.[1] ? decodeURIComponent(local[1]) : ''
+},
+acoes: ['abrir_evento']
+});
+}
+
+// 7. mailto
+if (texto.startsWith('mailto:')) {
+const email = texto.match(/mailto:([^?]+)/);
+const subject = texto.match(/subject=([^&]+)/);
+const body = texto.match(/body=([^&]+)/);
+tipos.push({
+tipo: 'email',
+icone: '📧',
+label: 'E-mail',
+cor: '#d64545',
+dados: {
+email: email?.[1] || '',
+assunto: subject?.[1] ? decodeURIComponent(subject[1]) : '',
+mensagem: body?.[1] ? decodeURIComponent(body[1]) : ''
+},
+acoes: ['abrir_email']
+});
+}
+
+// 8. tel:
+if (texto.startsWith('tel:')) {
+const numero = texto.replace('tel:', '');
+tipos.push({
+tipo: 'telefone',
+icone: '📞',
+label: 'Telefone',
+cor: '#28a745',
+dados: { numero: numero },
+acoes: ['ligar']
+});
+}
+
+// 9. sms:
+if (texto.startsWith('sms:')) {
+const numero = texto.match(/sms:([^?]+)/);
+const body = texto.match(/body=([^&]+)/);
+tipos.push({
+tipo: 'sms',
+icone: '✉️',
+label: 'SMS',
+cor: '#17a2b8',
+dados: {
+numero: numero?.[1] || '',
+mensagem: body?.[1] ? decodeURIComponent(body[1]) : ''
+},
+acoes: ['abrir_sms']
+});
+}
+
+// 10. geo:
+if (texto.startsWith('geo:')) {
+const coords = texto.replace('geo:', '');
+tipos.push({
+tipo: 'geo',
+icone: '🌍',
+label: 'Coordenadas',
+cor: '#fd7e14',
+dados: { coordenadas: coords },
+acoes: ['abrir_geo']
+});
+}
+
+// 11. URL (se nenhum dos acima)
+if (texto.match(/^https?:\/\//) && tipos.length === 0) {
+tipos.push({
+tipo: 'url',
+icone: '🔗',
+label: 'Link',
+cor: '#4f6ef7',
+dados: { url: texto },
+acoes: ['abrir_url']
+});
+}
+
+// 12. Texto puro (se nenhum dos acima)
+if (tipos.length === 0) {
+tipos.push({
+tipo: 'texto',
+icone: '📝',
+label: 'Texto',
+cor: '#6b7280',
+acoes: ['copiar']
+});
+}
+
+return tipos[0];
+}
+
+// ===== FUNÇÃO PARA GERAR BOTÕES DE AÇÃO DO RESULTADO =====
+function gerarBotoesAcao(tipo, texto) {
+const container = document.getElementById('leitorBotoes');
+if (!container) return;
+
+container.innerHTML = '';
+
+// Define ações baseadas no tipo
+const acoes = {
+'salvar_contato': {
+texto: '👤 Salvar',
+cor: '#6f42c1',
+corTexto: 'white',
+acao: () => salvarContatoVCard(texto)
+},
+'copiar_senha': {
+texto: '🔑 Copiar',
+cor: '#1a2a6c',
+corTexto: 'white',
+acao: () => {
+const senha = tipo.dados?.senha || '';
+if (senha) {
+navigator.clipboard.writeText(senha).then(() => {
+mostrarModal('✅', 'Senha Copiada!', 'A senha do Wi-Fi foi copiada.', 'success');
+}).catch(() => {
+mostrarModal('⚠️', 'Erro', 'Não foi possível copiar a senha.', 'warning');
+});
+}
+}
+},
+'mostrar_wifi': {
+texto: '📶 Wi-Fi',
+cor: '#1a2a6c',
+corTexto: 'white',
+acao: () => {
+const { ssid, tipo: seg, senha } = tipo.dados || {};
+mostrarModal('📶', 'Wi-Fi Detectado',
+`Rede: ${ssid || 'N/A'}\nSegurança: ${seg || 'N/A'}\nSenha: ${senha || 'Sem senha'}`,
+'info'
+);
+}
+},
+'abrir_whatsapp': {
+texto: '💬 Abrir',
+cor: '#25d366',
+corTexto: 'white',
+acao: () => window.open(texto, '_blank')
+},
+'abrir_instagram': {
+texto: '@ Abrir',
+cor: '#bc1888',
+corTexto: 'white',
+acao: () => window.open(texto, '_blank')
+},
+'abrir_maps': {
+texto: '🗺️ Abrir',
+cor: '#fd7e14',
+corTexto: 'white',
+acao: () => window.open(texto, '_blank')
+},
+'abrir_evento': {
+texto: '📅 Abrir',
+cor: '#e74c3c',
+corTexto: 'white',
+acao: () => window.open(texto, '_blank')
+},
+'abrir_email': {
+texto: '📧 Abrir',
+cor: '#d64545',
+corTexto: 'white',
+acao: () => window.open(texto, '_blank')
+},
+'ligar': {
+texto: '📞 Ligar',
+cor: '#28a745',
+corTexto: 'white',
+acao: () => window.open(texto, '_blank')
+},
+'abrir_sms': {
+texto: '✉️ SMS',
+cor: '#17a2b8',
+corTexto: 'white',
+acao: () => window.open(texto, '_blank')
+},
+'abrir_geo': {
+texto: '🌍 Abrir',
+cor: '#fd7e14',
+corTexto: 'white',
+acao: () => {
+const coords = tipo.dados?.coordenadas || '';
+window.open(`https://www.google.com/maps/search/?api=1&query=${coords}`, '_blank');
+}
+},
+'abrir_url': {
+texto: '🔗 Abrir',
+cor: '#4f6ef7',
+corTexto: 'white',
+acao: () => window.open(texto, '_blank')
+},
+'copiar': {
+texto: '📋 Copiar',
+cor: '#BFDBFE',
+corTexto: '#1E3A8A',
+acao: () => {
+navigator.clipboard.writeText(texto).then(() => {
+mostrarModal('✅', 'Copiado!', 'Texto copiado para área de transferência.', 'success');
+}).catch(() => {
+mostrarModal('⚠️', 'Erro', 'Não foi possível copiar o texto.', 'warning');
+});
+}
+}
+};
+
+// Adiciona botões de ação específicos
+tipo.acoes.forEach(acaoKey => {
+const config = acoes[acaoKey];
+if (!config) return;
+
+const btn = document.createElement('button');
+btn.textContent = config.texto;
+btn.style.cssText = `
+flex: 1;
+min-width: 70px;
+padding: 10px 6px;
+border: none;
+border-radius: 10px;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.15s ease, box-shadow 0.15s ease;
+background: ${config.cor};
+color: ${config.corTexto || 'white'};
+`;
+btn.onclick = config.acao;
+container.appendChild(btn);
+});
+
+// Adiciona botão "Ler" (único botão para ler outro QR Code)
+const btnLerOutro = document.createElement('button');
+btnLerOutro.textContent = '🔍 Ler';
+btnLerOutro.style.cssText = `
+flex: 1;
+min-width: 70px;
+padding: 10px 6px;
+border: none;
+border-radius: 10px;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.15s ease, box-shadow 0.15s ease;
+background: #1a2a6c;
+color: white;
+`;
+btnLerOutro.onclick = function() {
+reiniciarLeitor();
+};
+container.appendChild(btnLerOutro);
+}
+
+// ===== REINICIAR LEITOR =====
+function reiniciarLeitor() {
+pararLeitor();
+leitorResultadoProcessado = false;
+leitorResultado = null;
+
+// Limpa o resultado anterior
+const resultadoDiv = document.getElementById('leitorResultado');
+resultadoDiv.style.display = 'none';
+resultadoDiv.innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
+document.getElementById('leitorTexto').textContent = '';
+
+// Usa a função centralizada para criar os botões (apenas Iniciar)
+criarBotoesLeitor(true, '🔍 Iniciar', function() { toggleLeitor(); });
+
+// Volta o placeholder
+const placeholder = document.getElementById('leitorPlaceholder');
+if (placeholder) placeholder.style.display = 'block';
+
+// Aguarda um pouco e inicia automaticamente
+setTimeout(() => {
+iniciarLeitor();
+}, 500);
+}
+
+// ===== FUNÇÃO PRINCIPAL DO LEITOR =====
+function processarResultadoLeitor(textoLido) {
+leitorResultado = textoLido;
+leitorResultadoProcessado = true;
+
+// Detecta o tipo do QR Code
+const tipo = detectarTipoQR(textoLido);
+
+const resultadoDiv = document.getElementById('leitorResultado');
+resultadoDiv.style.display = 'block';
+resultadoDiv.style.borderLeftColor = tipo.cor;
+
+// Monta a mensagem de resultado
+let html = `<strong>${tipo.label} Detectado!</strong><br>`;
+
+// Mostra dados específicos baseado no tipo
+if (tipo.dados) {
+switch (tipo.tipo) {
+case 'vcard':
+const nome = textoLido.match(/FN:([^\n]+)/);
+const tel = textoLido.match(/TEL:([^\n]+)/);
+const email = textoLido.match(/EMAIL:([^\n]+)/);
+const org = textoLido.match(/ORG:([^\n]+)/);
+html += `<span style="font-size:13px;color:#6b7280;">
+Nome: ${nome?.[1] || 'N/A'}<br>
+Telefone: ${tel?.[1] || 'N/A'}<br>
+E-mail: ${email?.[1] || 'N/A'}<br>
+${org ? `Empresa: ${org[1]}` : ''}<br>
+</span>
+<span style="font-size:12px;color:#6f42c1;font-weight:600;display:block;margin-top:6px;">
+💡 Clique em "Salvar Contato" para baixar o arquivo .vcf
+</span>`;
+break;
+case 'wifi':
+const { ssid, tipo: seg, senha } = tipo.dados;
+html += `<span style="font-size:13px;color:#6b7280;">
+Rede: ${ssid || 'N/A'}<br>
+Segurança: ${seg || 'N/A'}<br>
+Senha: ${senha ? '••••••••' : 'Sem senha'}
+</span>`;
+break;
+case 'whatsapp':
+html += `<span style="font-size:13px;color:#6b7280;">
+Número: ${tipo.dados.numero || 'N/A'}
+</span>`;
+break;
+case 'instagram':
+html += `<span style="font-size:13px;color:#6b7280;">
+@${tipo.dados.usuario || 'N/A'}
+</span>`;
+break;
+case 'maps':
+html += `<span style="font-size:13px;color:#6b7280;">
+📍 ${tipo.dados.endereco || 'N/A'}
+</span>`;
+break;
+case 'evento':
+const { titulo, data, local } = tipo.dados;
+html += `<span style="font-size:13px;color:#6b7280;">
+${titulo || 'Evento'}<br>
+${data ? `📆 ${data}` : ''}<br>
+${local ? `📍 ${local}` : ''}
+</span>`;
+break;
+case 'email':
+const { email: dest, assunto, mensagem } = tipo.dados;
+html += `<span style="font-size:13px;color:#6b7280;">
+Para: ${dest || 'N/A'}<br>
+Assunto: ${assunto || 'N/A'}<br>
+${mensagem ? `Mensagem: ${mensagem.substring(0, 50)}${mensagem.length > 50 ? '...' : ''}` : ''}
+</span>`;
+break;
+case 'telefone':
+html += `<span style="font-size:13px;color:#6b7280;">
+📞 ${tipo.dados.numero || 'N/A'}
+</span>`;
+break;
+case 'sms':
+html += `<span style="font-size:13px;color:#6b7280;">
+Para: ${tipo.dados.numero || 'N/A'}<br>
+${tipo.dados.mensagem ? `Mensagem: ${tipo.dados.mensagem.substring(0, 50)}${tipo.dados.mensagem.length > 50 ? '...' : ''}` : ''}
+</span>`;
+break;
+case 'geo':
+html += `<span style="font-size:13px;color:#6b7280;">
+🌍 Coordenadas: ${tipo.dados.coordenadas || 'N/A'}
+</span>`;
+break;
+case 'url':
+html += `<span style="font-size:13px;color:#6b7280;">
+${tipo.dados.url || 'N/A'}
+</span>`;
+break;
+default:
+html += `<span style="font-size:13px;color:#6b7280;">Conteúdo detectado com sucesso!</span>`;
+}
+}
+
+resultadoDiv.innerHTML = html;
+
+// Gera os botões de ação
+gerarBotoesAcao(tipo, textoLido);
+}
+
+// ===== LEITOR DE QR CODE (MODAL) =====
+function carregarJsQR() {
+return new Promise((resolve, reject) => {
+if (typeof jsQR !== 'undefined') {
+resolve();
+return;
+}
+const script = document.createElement('script');
+script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+script.onload = () => resolve();
+script.onerror = () => reject(new Error('Falha ao carregar jsQR'));
+document.head.appendChild(script);
+});
+}
+
+function toggleLeitor() {
+if (leitorAtivo) {
+pararLeitor();
+// Atualiza o botão para "Iniciar"
+const btn = document.getElementById('btnLeitorToggle');
+if (btn) btn.textContent = '🔍 Iniciar';
+} else {
+iniciarLeitor();
+}
+}
+
+async function iniciarLeitor() {
+const video = document.getElementById('leitorVideo');
+const placeholder = document.getElementById('leitorPlaceholder');
+const resultadoDiv = document.getElementById('leitorResultado');
+
+// Limpa resultado anterior
+resultadoDiv.style.display = 'none';
+resultadoDiv.innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
+document.getElementById('leitorTexto').textContent = '';
+leitorResultado = null;
+leitorResultadoProcessado = false;
+
+// Usa a função centralizada para criar os botões (apenas Iniciar com texto "Parar")
+criarBotoesLeitor(true, '⏹️ Parar', function() { toggleLeitor(); });
+
+if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+mostrarModal('❌', 'Não Suportado', 'Seu navegador não permite acesso à câmera.', 'danger');
+return;
+}
+
+try {
+leitorStream = await navigator.mediaDevices.getUserMedia({
+video: { facingMode: 'environment' }
+});
+} catch (e) {
+mostrarModal('⚠️', 'Câmera Bloqueada', 'Permita o acesso à câmera nas configurações do navegador.', 'warning');
+return;
+}
+
+video.srcObject = leitorStream;
+video.style.display = 'block';
+placeholder.style.display = 'none';
+leitorAtivo = true;
+
+try {
+await video.play();
+} catch (e) {}
+
+const usaBarcodeDetector = 'BarcodeDetector' in window;
+let detector = null;
+if (usaBarcodeDetector) {
+try {
+detector = new BarcodeDetector({ formats: ['qr_code'] });
+} catch (e) {
+detector = null;
+}
+}
+
+if (!detector) {
+try {
+await carregarJsQR();
+} catch (e) {
+pararLeitor();
+mostrarModal('❌', 'Erro', 'Não foi possível carregar o leitor de QR Code.', 'danger');
+return;
+}
+}
+
+const leitorCanvas = document.createElement('canvas');
+const leitorCtx = leitorCanvas.getContext('2d', { willReadFrequently: true });
+
+const lerFrame = async () => {
+if (!leitorAtivo) return;
+
+if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+leitorAnimId = requestAnimationFrame(lerFrame);
+return;
+}
+
+leitorCanvas.width = video.videoWidth;
+leitorCanvas.height = video.videoHeight;
+leitorCtx.drawImage(video, 0, 0, leitorCanvas.width, leitorCanvas.height);
+
+let textoLido = null;
+
+if (detector) {
+try {
+const codigos = await detector.detect(leitorCanvas);
+if (codigos.length > 0) textoLido = codigos[0].rawValue;
+} catch (e) {}
+} else if (typeof jsQR !== 'undefined') {
+const imageData = leitorCtx.getImageData(0, 0, leitorCanvas.width, leitorCanvas.height);
+const resultado = jsQR(imageData.data, imageData.width, imageData.height);
+if (resultado) textoLido = resultado.data;
+}
+
+if (textoLido && !leitorResultadoProcessado) {
+pararLeitor();
+processarResultadoLeitor(textoLido);
+return;
+}
+
+leitorAnimId = requestAnimationFrame(lerFrame);
+};
+
+leitorAnimId = requestAnimationFrame(lerFrame);
+}
+
+function pararLeitor() {
+leitorAtivo = false;
+
+if (leitorAnimId) {
+cancelAnimationFrame(leitorAnimId);
+leitorAnimId = null;
+}
+
+if (leitorStream) {
+leitorStream.getTracks().forEach(track => track.stop());
+leitorStream = null;
+}
+
+const video = document.getElementById('leitorVideo');
+if (video) {
+video.pause();
+video.srcObject = null;
+video.style.display = 'none';
+}
+
+const placeholder = document.getElementById('leitorPlaceholder');
+if (placeholder) placeholder.style.display = 'block';
+
+// Atualiza o botão para "Iniciar" se existir
+const btn = document.getElementById('btnLeitorToggle');
+if (btn) btn.textContent = '🔍 Iniciar';
+}
+
+function copiarLeitor() {
+if (!leitorResultado) return;
+
+if (!navigator.clipboard) {
+mostrarModal('⚠️', 'Não Suportado', 'Copiar automaticamente não é suportado neste navegador.', 'warning');
+return;
+}
+
+navigator.clipboard.writeText(leitorResultado).then(() => {
+mostrarModal('✅', 'Copiado!', 'O conteúdo foi copiado para a área de transferência.', 'success');
+}).catch(() => {
+mostrarModal('⚠️', 'Erro', 'Não foi possível copiar automaticamente.', 'warning');
+});
+}
+
+function abrirLeitorResultado() {
+if (!leitorResultado) return;
+
+if (leitorResultado.startsWith('http://') || leitorResultado.startsWith('https://')) {
+window.open(leitorResultado, '_blank');
+} else {
+mostrarModal('ℹ️', 'Não é um Link', 'O conteúdo lido não é uma URL para abrir no navegador.', 'info');
+}
+}
+
+// ===== PWA: REGISTRO DO SERVICE WORKER =====
+if ('serviceWorker' in navigator) {
+window.addEventListener('load', () => {
+// Usa caminho relativo para maior flexibilidade
+const swPath = window.location.pathname.includes('/qrcode/') ? './sw.js' : '/qrcode/sw.js';
+navigator.serviceWorker.register(swPath)
+.then((reg) => console.log('Service Worker registrado:', reg.scope))
+.catch((err) => console.error('Falha ao registrar Service Worker:', err));
+});
+}
+
+// ===== PWA: INSTALL PROMPT =====
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+e.preventDefault();
+deferredPrompt = e;
+console.log('📱 App pode ser instalado!');
+});
+
+window.addEventListener('online', () => {
+document.getElementById('offlineBanner').classList.remove('visible');
+});
+
+window.addEventListener('offline', () => {
+document.getElementById('offlineBanner').classList.add('visible');
+});
+
+// ===== EVENTOS =====
+window.onload = function() {
+toggleSenhaWifi();
+
+if (!navigator.onLine) {
+document.getElementById('offlineBanner').classList.add('visible');
+}
+
+const agora = new Date();
+const dataAtual = agora.toISOString().split('T')[0];
+const horaAtual = agora.toTimeString().slice(0, 5);
+document.getElementById('evento-data').value = dataAtual;
+document.getElementById('evento-hora').value = horaAtual;
+
+carregarDados();
+
+document.getElementById('linkInput').addEventListener('keypress', e => {
+if (e.key === 'Enter') gerarSite();
+});
+
+document.querySelectorAll('.tab-content').forEach(tab => {
+const geradores = {
+'tab-site': gerarSite,
+'tab-wifi': gerarWifi,
+'tab-texto': gerarTexto,
+'tab-email': gerarEmail,
+'tab-evento': gerarEvento,
+'tab-instagram': gerarInstagram,
+'tab-whatsapp': gerarWhatsapp,
+'tab-contato': gerarContato,
+'tab-local': gerarLocalizacao
+};
+const gerar = geradores[tab.id];
+if (!gerar) return;
+tab.querySelectorAll('input, select').forEach(el => {
+el.addEventListener('keypress', e => {
+if (e.key === 'Enter') {
+e.preventDefault();
+gerar();
+}
+});
+});
+});
+
+window.addEventListener('beforeunload', salvarDados);
+};
+</script>
 </body>
 </html>
