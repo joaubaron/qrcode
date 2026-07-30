@@ -1,17 +1,17 @@
 // Service Worker 
-// Toda vez que trocar algo a versão será atualizada automaticamente pelo deploy.yml
-const CACHE_VERSION = '30.07.2026-1318';
+// Toda vez que trocar fotos/áudios, a versão será atualizada automaticamente pelo deploy.yml
+const CACHE_VERSION = '30.07.2026-1330';
 const CACHE_NAME = `qrcode-${CACHE_VERSION}`;
 const ASSETS = [
 
-'/qrcode/index.html',
-'/qrcode/manifest.json',
-'/qrcode/qrcode.min.js',
-'/qrcode/icons/icone192.png',
-'/qrcode/icons/icone512.png',
-'/qrcode/icons/favicon-32x32.png',
-'/qrcode/icons/favicon-16x16.png',
-'/qrcode/icons/apple-touch-icon.png'
+'/index.html',
+'/manifest.json',
+'/qrcode.min.js',
+'/icons/icone192.png',
+'/icons/icone512.png',
+'/icons/favicon-32x32.png',
+'/icons/favicon-16x16.png',
+'/icons/apple-touch-icon.png'
 ];
 
 // Instalação
@@ -96,8 +96,8 @@ return new Response('Offline', { status: 503 });
 self.addEventListener('push', (event) => {
 const options = {
 body: event.data ? event.data.text() : 'Novo conteúdo disponível!',
-icon: '/qrcode/icons/icone192.png',
-badge: '/qrcode/icons/icone192.png',
+icon: '/icons/icone192.png',
+badge: '/icons/icone192.png',
 vibrate: [100, 50, 100],
 data: { dateOfArrival: Date.now(), primaryKey: '1' },
 actions: [
@@ -111,6 +111,6 @@ event.waitUntil(self.registration.showNotification('Gerador de QR Code', options
 self.addEventListener('notificationclick', (event) => {
 event.notification.close();
 if (event.action === 'open') {
-event.waitUntil(clients.openWindow('/qrcode/'));
+event.waitUntil(clients.openWindow('/'));
 }
 });
