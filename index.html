@@ -1929,13 +1929,13 @@ botoes.appendChild(btnIniciar);
 // Define ações baseadas no tipo
 const acoes = {
 'salvar_contato': {
-texto: '👤 Salvar Contato',
+texto: '👤 Salvar',
 cor: '#6f42c1',
 corTexto: 'white',
 acao: () => salvarContatoVCard(texto)
 },
 'copiar_senha': {
-texto: '🔑 Copiar Senha',
+texto: '🔑 Copiar',
 cor: '#1a2a6c',
 corTexto: 'white',
 acao: () => {
@@ -1950,7 +1950,7 @@ mostrarModal('⚠️', 'Erro', 'Não foi possível copiar a senha.', 'warning');
 }
 },
 'mostrar_wifi': {
-texto: '📶 Detalhes Wi-Fi',
+texto: '📶 Wi-Fi',
 cor: '#1a2a6c',
 corTexto: 'white',
 acao: () => {
@@ -1962,31 +1962,31 @@ mostrarModal('📶', 'Wi-Fi Detectado',
 }
 },
 'abrir_whatsapp': {
-texto: '💬 Abrir WhatsApp',
+texto: '💬 Abrir',
 cor: '#25d366',
 corTexto: 'white',
 acao: () => window.open(texto, '_blank')
 },
 'abrir_instagram': {
-texto: '📸 Abrir Instagram',
+texto: '@ Abrir',
 cor: '#bc1888',
 corTexto: 'white',
 acao: () => window.open(texto, '_blank')
 },
 'abrir_maps': {
-texto: '🗺️ Abrir Maps',
+texto: '🗺️ Abrir',
 cor: '#fd7e14',
 corTexto: 'white',
 acao: () => window.open(texto, '_blank')
 },
 'abrir_evento': {
-texto: '📅 Adicionar à Agenda',
+texto: '📅 Adicionar',
 cor: '#e74c3c',
 corTexto: 'white',
 acao: () => window.open(texto, '_blank')
 },
 'abrir_email': {
-texto: '📧 Abrir E-mail',
+texto: '📧 Abrir',
 cor: '#d64545',
 corTexto: 'white',
 acao: () => window.open(texto, '_blank')
@@ -1998,13 +1998,13 @@ corTexto: 'white',
 acao: () => window.open(texto, '_blank')
 },
 'abrir_sms': {
-texto: '✉️ Enviar SMS',
+texto: '✉️ Enviar',
 cor: '#17a2b8',
 corTexto: 'white',
 acao: () => window.open(texto, '_blank')
 },
 'abrir_geo': {
-texto: '🌍 Abrir no Maps',
+texto: '🌍 Abrir',
 cor: '#fd7e14',
 corTexto: 'white',
 acao: () => {
@@ -2013,7 +2013,7 @@ window.open(`https://www.google.com/maps/search/?api=1&query=${coords}`, '_blank
 }
 },
 'abrir_url': {
-texto: '🔗 Abrir Link',
+texto: '🔗 Abrir',
 cor: '#4f6ef7',
 corTexto: 'white',
 acao: () => window.open(texto, '_blank')
@@ -2080,7 +2080,7 @@ botoes.appendChild(btnAbrir);
 
 // Adiciona o botão "Ler Outro"
 const btnLerOutro = document.createElement('button');
-btnLerOutro.textContent = '📷 Ler Outro';
+btnLerOutro.textContent = '🔍 Ler';
 btnLerOutro.style.cssText = `
 flex: 1;
 min-width: 80px;
