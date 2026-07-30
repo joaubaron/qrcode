@@ -874,7 +874,7 @@ color: white;
 <h3 class="leitor-modal-title">📷 Leitor de QR Code</h3>
 <div class="leitor-video-wrapper">
 <video id="leitorVideo" autoplay playsinline muted></video>
-<div class="leitor-placeholder" id="leitorPlaceholder">🔍 Toque em "Abrir Câmera" para ler um QR Code</div>
+<div class="leitor-placeholder" id="leitorPlaceholder">🔍 Toque em "Iniciar" para ler um QR Code</div>
 </div>
 <div class="leitor-resultado" id="leitorResultado">
 <strong>📄 Resultado:</strong><br>
@@ -1136,6 +1136,7 @@ let leitorStream = null;
 let leitorAnimId = null;
 let leitorAtivo = false;
 let leitorResultado = null;
+let leitorAguardandoReinicio = false;
 
 const ABAS = {
 'tab-site': { qrId: 'qrcode-site', infoId: 'infoSite', arquivo: 'qrcode-site.png' },
@@ -1160,6 +1161,11 @@ salvarDados();
 
 function abrirLeitor() {
 document.getElementById('leitorModal').classList.add('ativo');
+// Reset do leitor ao abrir
+pararLeitor();
+document.getElementById('btnLeitorToggle').textContent = '🔍 Iniciar';
+document.getElementById('leitorPlaceholder').style.display = 'block';
+document.getElementById('leitorResultado').style.display = 'none';
 }
 
 function fecharLeitor() {
@@ -1726,41 +1732,6 @@ document.body.removeChild(link);
 URL.revokeObjectURL(link.href);
 }
 
-// ===== REINICIAR LEITOR =====
-function reiniciarLeitor() {
-// Para a câmera e limpa o estado
-pararLeitor();
-
-// Limpa o resultado anterior
-const resultadoDiv = document.getElementById('leitorResultado');
-resultadoDiv.style.display = 'none';
-resultadoDiv.innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
-document.getElementById('leitorTexto').textContent = '';
-document.getElementById('btnCopiarLeitor').style.display = 'none';
-document.getElementById('btnAbrirLeitor').style.display = 'none';
-leitorResultado = null;
-
-// Remove botões extras
-const botoes = document.querySelector('.leitor-botoes');
-const botoesOriginais = botoes.querySelectorAll('button');
-botoesOriginais.forEach((btn, index) => {
-if (index > 0) btn.remove();
-});
-
-// Reinicia a câmera
-const btn = document.getElementById('btnLeitorToggle');
-btn.textContent = '🔍 Iniciar';
-
-// Volta o placeholder
-const placeholder = document.getElementById('leitorPlaceholder');
-if (placeholder) placeholder.style.display = 'block';
-
-// Aguarda um pouco e inicia novamente
-setTimeout(() => {
-iniciarLeitor();
-}, 500);
-}
-
 // ===== DETECTOR DE TIPOS DE QR CODE =====
 function detectarTipoQR(texto) {
 const tipos = [];
@@ -1942,11 +1913,18 @@ function gerarBotoesAcao(tipo, texto) {
 const botoes = document.querySelector('.leitor-botoes');
 if (!botoes) return;
 
-// Limpa botões existentes (mantém apenas o primeiro - Iniciar)
-const botoesOriginais = botoes.querySelectorAll('button');
-botoesOriginais.forEach((btn, index) => {
-if (index > 0) btn.remove();
-});
+// Limpa todos os botões (incluindo o Iniciar)
+botoes.innerHTML = '';
+
+// Adiciona o botão Iniciar novamente
+const btnIniciar = document.createElement('button');
+btnIniciar.className = 'btn-leitor-camera';
+btnIniciar.id = 'btnLeitorToggle';
+btnIniciar.textContent = '🔍 Iniciar';
+btnIniciar.onclick = function() {
+toggleLeitor();
+};
+botoes.appendChild(btnIniciar);
 
 // Define ações baseadas no tipo
 const acoes = {
@@ -2075,25 +2053,90 @@ background: ${config.cor};
 color: ${config.corTexto || 'white'};
 `;
 btn.onclick = config.acao;
-
-// Insere antes do botão Copiar (que será recriado depois) ou no final
-const copiarBtn = document.getElementById('btnCopiarLeitor');
-if (copiarBtn && copiarBtn.parentNode === botoes) {
-botoes.insertBefore(btn, copiarBtn);
-} else {
 botoes.appendChild(btn);
-}
 });
 
-// Garante que o botão Copiar sempre exista
-const copiarBtn = document.getElementById('btnCopiarLeitor');
-if (copiarBtn && copiarBtn.parentNode !== botoes) {
-botoes.appendChild(copiarBtn);
-}
-copiarBtn.style.display = 'block';
+// Adiciona o botão Copiar
+const btnCopiar = document.createElement('button');
+btnCopiar.className = 'btn-leitor-copiar';
+btnCopiar.id = 'btnCopiarLeitor';
+btnCopiar.textContent = '📋 Copiar';
+btnCopiar.style.display = 'block';
+btnCopiar.onclick = function() {
+copiarLeitor();
+};
+botoes.appendChild(btnCopiar);
+
+// Adiciona o botão Abrir (se for URL)
+const btnAbrir = document.createElement('button');
+btnAbrir.className = 'btn-leitor-abrir';
+btnAbrir.id = 'btnAbrirLeitor';
+btnAbrir.textContent = '🔗 Abrir';
+btnAbrir.style.display = 'none';
+btnAbrir.onclick = function() {
+abrirLeitorResultado();
+};
+botoes.appendChild(btnAbrir);
+
+// Adiciona o botão "Ler Outro"
+const btnLerOutro = document.createElement('button');
+btnLerOutro.textContent = '📷 Ler Outro';
+btnLerOutro.style.cssText = `
+flex: 1;
+min-width: 80px;
+padding: 12px;
+border: none;
+border-radius: 10px;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.15s ease, box-shadow 0.15s ease;
+background: #1a2a6c;
+color: white;
+`;
+btnLerOutro.onclick = function() {
+reiniciarLeitor();
+};
+botoes.appendChild(btnLerOutro);
 }
 
-// ===== FUNÇÃO PRINCIPAL DO LEITOR (MODIFICADA) =====
+// ===== REINICIAR LEITOR =====
+function reiniciarLeitor() {
+// Para a câmera e limpa o estado
+pararLeitor();
+
+// Limpa o resultado anterior
+const resultadoDiv = document.getElementById('leitorResultado');
+resultadoDiv.style.display = 'none';
+resultadoDiv.innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
+document.getElementById('leitorTexto').textContent = '';
+document.getElementById('btnCopiarLeitor').style.display = 'none';
+document.getElementById('btnAbrirLeitor').style.display = 'none';
+leitorResultado = null;
+
+// Remove todos os botões extras e recria apenas o Iniciar
+const botoes = document.querySelector('.leitor-botoes');
+botoes.innerHTML = '';
+const btnIniciar = document.createElement('button');
+btnIniciar.className = 'btn-leitor-camera';
+btnIniciar.id = 'btnLeitorToggle';
+btnIniciar.textContent = '🔍 Iniciar';
+btnIniciar.onclick = function() {
+toggleLeitor();
+};
+botoes.appendChild(btnIniciar);
+
+// Volta o placeholder
+const placeholder = document.getElementById('leitorPlaceholder');
+if (placeholder) placeholder.style.display = 'block';
+
+// Aguarda um pouco e inicia automaticamente
+setTimeout(() => {
+iniciarLeitor();
+}, 500);
+}
+
+// ===== FUNÇÃO PRINCIPAL DO LEITOR =====
 function processarResultadoLeitor(textoLido) {
 leitorResultado = textoLido;
 
@@ -2203,40 +2246,11 @@ gerarBotoesAcao(tipo, textoLido);
 
 // Esconde o botão Abrir se não for URL
 const abrirBtn = document.getElementById('btnAbrirLeitor');
+if (abrirBtn) {
 if (tipo.tipo !== 'url' && tipo.tipo !== 'whatsapp' && tipo.tipo !== 'instagram' && tipo.tipo !== 'maps' && tipo.tipo !== 'evento' && tipo.tipo !== 'email' && tipo.tipo !== 'sms' && tipo.tipo !== 'geo' && tipo.tipo !== 'telefone') {
 abrirBtn.style.display = 'none';
 } else {
 abrirBtn.style.display = 'block';
-}
-
-// ADICIONA O BOTÃO "LER OUTRO"
-const botoes = document.querySelector('.leitor-botoes');
-if (botoes) {
-const btnLerOutro = document.createElement('button');
-btnLerOutro.textContent = '📷 Ler Outro';
-btnLerOutro.style.cssText = `
-flex: 1;
-min-width: 80px;
-padding: 12px;
-border: none;
-border-radius: 10px;
-font-size: 15px;
-font-weight: 600;
-cursor: pointer;
-transition: transform 0.15s ease, box-shadow 0.15s ease;
-background: #1a2a6c;
-color: white;
-`;
-btnLerOutro.onclick = function() {
-reiniciarLeitor();
-};
-
-// Adiciona após os outros botões
-const copiarBtn = document.getElementById('btnCopiarLeitor');
-if (copiarBtn && copiarBtn.parentNode === botoes) {
-botoes.insertBefore(btnLerOutro, copiarBtn.nextSibling);
-} else {
-botoes.appendChild(btnLerOutro);
 }
 }
 }
@@ -2259,6 +2273,7 @@ document.head.appendChild(script);
 function toggleLeitor() {
 if (leitorAtivo) {
 pararLeitor();
+document.getElementById('btnLeitorToggle').textContent = '🔍 Iniciar';
 } else {
 iniciarLeitor();
 }
@@ -2272,17 +2287,21 @@ const resultadoDiv = document.getElementById('leitorResultado');
 
 // Limpa resultado anterior
 resultadoDiv.style.display = 'none';
+resultadoDiv.innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
 document.getElementById('leitorTexto').textContent = '';
-document.getElementById('btnCopiarLeitor').style.display = 'none';
-document.getElementById('btnAbrirLeitor').style.display = 'none';
 leitorResultado = null;
 
-// Remove botões extras
+// Remove todos os botões extras e recria apenas o Iniciar
 const botoes = document.querySelector('.leitor-botoes');
-const botoesOriginais = botoes.querySelectorAll('button');
-botoesOriginais.forEach((btn2, index) => {
-if (index > 0) btn2.remove();
-});
+botoes.innerHTML = '';
+const btnIniciar = document.createElement('button');
+btnIniciar.className = 'btn-leitor-camera';
+btnIniciar.id = 'btnLeitorToggle';
+btnIniciar.textContent = '⏹️ Parar';
+btnIniciar.onclick = function() {
+toggleLeitor();
+};
+botoes.appendChild(btnIniciar);
 
 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
 mostrarModal('❌', 'Não Suportado', 'Seu navegador não permite acesso à câmera.', 'danger');
@@ -2301,7 +2320,7 @@ return;
 video.srcObject = leitorStream;
 video.style.display = 'block';
 placeholder.style.display = 'none';
-btn.textContent = '⏹️ Parar Câmera';
+btn.textContent = '⏹️ Parar';
 leitorAtivo = true;
 
 try {
@@ -2357,10 +2376,10 @@ if (resultado) textoLido = resultado.data;
 }
 
 if (textoLido) {
-// Processa o resultado com o detector inteligente
-processarResultadoLeitor(textoLido);
+// Para a câmera antes de processar
 pararLeitor();
-btn.textContent = '🔍 Iniciar';
+// Processa o resultado
+processarResultadoLeitor(textoLido);
 return;
 }
 
@@ -2392,9 +2411,6 @@ video.style.display = 'none';
 
 const placeholder = document.getElementById('leitorPlaceholder');
 if (placeholder) placeholder.style.display = 'block';
-
-const btn = document.getElementById('btnLeitorToggle');
-if (btn) btn.textContent = '🔍 Iniciar';
 }
 
 function copiarLeitor() {
