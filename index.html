@@ -705,6 +705,10 @@
         'Biblioteca QR Code não carregada.\n\nPara funcionar offline, baixe o arquivo qrcode.min.js e coloque na mesma pasta do index.html.\n\nBaixe em: https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js',
         'danger'
       );
+    } else if (typeof qrcode.stringToBytesFuncs !== 'undefined' && qrcode.stringToBytesFuncs['UTF-8']) {
+      // Corrige a codificação para UTF-8, garantindo que acentos e caracteres
+      // especiais (ex: "Reunião", "Endereço") sejam lidos corretamente ao escanear.
+      qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
     }
 
     // ===== FUNÇÕES DO MODAL =====
@@ -966,6 +970,14 @@
         .replace(/&/g, '\\&');
     }
 
+    function escaparVCard(texto) {
+      return String(texto)
+        .replace(/\\/g, '\\\\')
+        .replace(/;/g, '\\;')
+        .replace(/,/g, '\\,')
+        .replace(/\n/g, '\\n');
+    }
+
     function apenasDigitos(texto) {
       let limpo = texto.trim().replace(/[^\d+]/g, '');
       const comMais = limpo.startsWith('+');
@@ -1131,8 +1143,18 @@
         return;
       }
 
-      const dataHoraInicio = `${data.replace(/-/g, '')}T${hora.replace(/:/g, '')}00`;
-      const dataHoraFim = `${data.replace(/-/g, '')}T${String(Number(hora.replace(/:/g, '')) + 100).padStart(4, '0')}00`;
+      // Usa um Date de verdade para somar 1h ao horário de início, evitando
+      // valores inválidos (ex: 24:30) quando o evento cruza a virada da hora/dia.
+      const [ano, mes, dia] = data.split('-').map(Number);
+      const [h, m] = hora.split(':').map(Number);
+      const inicio = new Date(ano, mes - 1, dia, h, m, 0);
+      const fim = new Date(inicio.getTime() + 60 * 60 * 1000);
+
+      const pad = n => String(n).padStart(2, '0');
+      const formatarICS = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+
+      const dataHoraInicio = formatarICS(inicio);
+      const dataHoraFim = formatarICS(fim);
 
       let txt = `https://www.google.com/calendar/render?action=TEMPLATE`;
       txt += `&text=${encodeURIComponent(titulo)}`;
@@ -1200,9 +1222,9 @@
         return;
       }
 
-      let txt = `BEGIN:VCARD\nVERSION:3.0\nFN:${nome}\nTEL:${telefone}`;
-      if (email) txt += `\nEMAIL:${email}`;
-      if (empresa) txt += `\nORG:${empresa}`;
+      let txt = `BEGIN:VCARD\nVERSION:3.0\nFN:${escaparVCard(nome)}\nTEL:${escaparVCard(telefone)}`;
+      if (email) txt += `\nEMAIL:${escaparVCard(email)}`;
+      if (empresa) txt += `\nORG:${escaparVCard(empresa)}`;
       txt += `\nEND:VCARD`;
 
       renderizarQR('qrcode-contato', txt);
