@@ -1726,6 +1726,41 @@ document.body.removeChild(link);
 URL.revokeObjectURL(link.href);
 }
 
+// ===== REINICIAR LEITOR =====
+function reiniciarLeitor() {
+// Para a câmera e limpa o estado
+pararLeitor();
+
+// Limpa o resultado anterior
+const resultadoDiv = document.getElementById('leitorResultado');
+resultadoDiv.style.display = 'none';
+resultadoDiv.innerHTML = '<strong>📄 Resultado:</strong><br><span id="leitorTexto"></span>';
+document.getElementById('leitorTexto').textContent = '';
+document.getElementById('btnCopiarLeitor').style.display = 'none';
+document.getElementById('btnAbrirLeitor').style.display = 'none';
+leitorResultado = null;
+
+// Remove botões extras
+const botoes = document.querySelector('.leitor-botoes');
+const botoesOriginais = botoes.querySelectorAll('button');
+botoesOriginais.forEach((btn, index) => {
+if (index > 0) btn.remove();
+});
+
+// Reinicia a câmera
+const btn = document.getElementById('btnLeitorToggle');
+btn.textContent = '🔍 Iniciar';
+
+// Volta o placeholder
+const placeholder = document.getElementById('leitorPlaceholder');
+if (placeholder) placeholder.style.display = 'block';
+
+// Aguarda um pouco e inicia novamente
+setTimeout(() => {
+iniciarLeitor();
+}, 500);
+}
+
 // ===== DETECTOR DE TIPOS DE QR CODE =====
 function detectarTipoQR(texto) {
 const tipos = [];
@@ -2172,6 +2207,37 @@ if (tipo.tipo !== 'url' && tipo.tipo !== 'whatsapp' && tipo.tipo !== 'instagram'
 abrirBtn.style.display = 'none';
 } else {
 abrirBtn.style.display = 'block';
+}
+
+// ADICIONA O BOTÃO "LER OUTRO"
+const botoes = document.querySelector('.leitor-botoes');
+if (botoes) {
+const btnLerOutro = document.createElement('button');
+btnLerOutro.textContent = '📷 Ler Outro';
+btnLerOutro.style.cssText = `
+flex: 1;
+min-width: 80px;
+padding: 12px;
+border: none;
+border-radius: 10px;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.15s ease, box-shadow 0.15s ease;
+background: #1a2a6c;
+color: white;
+`;
+btnLerOutro.onclick = function() {
+reiniciarLeitor();
+};
+
+// Adiciona após os outros botões
+const copiarBtn = document.getElementById('btnCopiarLeitor');
+if (copiarBtn && copiarBtn.parentNode === botoes) {
+botoes.insertBefore(btnLerOutro, copiarBtn.nextSibling);
+} else {
+botoes.appendChild(btnLerOutro);
+}
 }
 }
 
