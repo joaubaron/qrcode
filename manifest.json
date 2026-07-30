@@ -1,6 +1,6 @@
 {
 "name": "Gerador de QR Code",
-"short_name": "QR Code",
+"short_name": "QRCode",
 "description": "Gerador de QR Code para vários tipos: Site, Wi-Fi, Texto, E-mail, Evento, Instagram, WhatsApp, Contato e Local",
 "start_url": "/qrcode/",
 "display": "standalone",
