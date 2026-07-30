@@ -1,6 +1,6 @@
 // Service Worker 
 // Toda vez que trocar fotos/áudios, a versão será atualizada automaticamente pelo deploy.yml
-const CACHE_VERSION = '30.07.2026-1330';
+const CACHE_VERSION = '30.07.2026-1555';
 const CACHE_NAME = `qrcode-${CACHE_VERSION}`;
 const ASSETS = [
 
