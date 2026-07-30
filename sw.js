@@ -1,6 +1,6 @@
-// Service Workers
+// Service Worker 
 // Toda vez que trocar fotos/áudios, a versão será atualizada automaticamente pelo deploy.yml
-const CACHE_VERSION = '30.07.2026-0808';
+const CACHE_VERSION = '28.07.2026-1237';
 const CACHE_NAME = `qrcode-${CACHE_VERSION}`;
 const ASSETS = [
 
@@ -8,7 +8,10 @@ const ASSETS = [
 '/manifest.json',
 '/qrcode.min.js',
 '/icons/icone192.png',
-'/icons/icone512.png'
+'/icons/icone512.png',
+'/icons/favicon-32x32.png',
+'/icons/favicon-16x16.png',
+'/icons/apple-touch-icon.png'
 ];
 
 // Instalação
@@ -17,13 +20,23 @@ event.waitUntil(
 caches.open(CACHE_NAME)
 .then((cache) => {
 console.log('Cache aberto:', CACHE_NAME);
-return cache.addAll(ASSETS);
+// cache.addAll() falha por inteiro se UM recurso da lista der 404
+// (ex: qrcode.min.js não existir localmente, já que normalmente vem do CDN).
+// Usamos cache.add() individual + Promise.allSettled para que um recurso
+// ausente não impeça o cache dos demais nem trave a instalação do SW.
+return Promise.allSettled(
+ASSETS.map((url) =>
+cache.add(url).catch((err) => {
+console.warn('Não foi possível cachear:', url, err);
+})
+)
+);
 })
 .then(() => self.skipWaiting())
 );
 });
 
-// Ativação - limpa todos caches antigos
+// Ativação - limpa caches antigos
 self.addEventListener('activate', (event) => {
 event.waitUntil(
 caches.keys().then((cacheNames) => {
