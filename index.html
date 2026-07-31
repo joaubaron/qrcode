@@ -1551,23 +1551,42 @@ const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 if (isAndroid) {
 // ANDROID: Abre direto no app de contatos via intent
+// Usa extras "S.xxx" (nome, telefone, email) — o vCard inteiro num "data=" falha silenciosamente.
 try {
-const vcardEncoded = encodeURIComponent(txt);
-const intent = `intent://addcontact#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact;data=${vcardEncoded};end`;
+let intent = 'intent://contacts#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact';
+if (nome) intent += `;S.name=${encodeURIComponent(nome)}`;
+if (telefone) intent += `;S.phone=${encodeURIComponent(telefone)}`;
+if (email) intent += `;S.email=${encodeURIComponent(email)}`;
+if (empresa) intent += `;S.company=${encodeURIComponent(empresa)}`;
+intent += ';end';
 
-const link = document.createElement('a');
-link.href = intent;
-link.click();
+let abriu = false;
+const marcarAberto = () => { if (document.hidden) abriu = true; };
+document.addEventListener('visibilitychange', marcarAberto);
 
+window.location.href = intent;
+
+setTimeout(() => {
+document.removeEventListener('visibilitychange', marcarAberto);
+if (abriu) {
 mostrarModal('✅', 'Contato Aberto!', 
 '📱 O app de contatos foi aberto.\n\nToque em "SALVAR" para adicionar o contato à sua agenda.',
 'success'
 );
+} else {
+baixarVCard(txt, nome);
+mostrarModal('📥', 'Contato Gerado!',
+'Não foi possível abrir o app de contatos automaticamente.\n\nO arquivo .vcf foi baixado — toque na notificação de download para importar o contato.',
+'info'
+);
+}
 salvarDados();
+}, 1200);
 return;
 } catch (e) {
 // Fallback: baixa o arquivo
 baixarVCard(txt, nome);
+salvarDados();
 }
 return;
 }
@@ -1845,28 +1864,60 @@ let nome = 'contato';
 const nomeMatch = vcardTexto.match(/FN:(.+?)(?:\n|$)/);
 if (nomeMatch) nome = nomeMatch[1].trim();
 
+const telMatch = vcardTexto.match(/TEL[^:]*:(.+?)(?:\n|$)/);
+const emailMatch = vcardTexto.match(/EMAIL[^:]*:(.+?)(?:\n|$)/);
+const orgMatch = vcardTexto.match(/ORG:(.+?)(?:\n|$)/);
+const telefone = telMatch ? telMatch[1].trim() : '';
+const email = emailMatch ? emailMatch[1].trim() : '';
+const empresa = orgMatch ? orgMatch[1].trim() : '';
+
 // ===== ABRE DIRETO NOS CONTATOS (mesma lógica do gerarContato) =====
 const isAndroid = /Android/i.test(navigator.userAgent);
 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 if (isAndroid) {
 // ANDROID: Abre direto no app de contatos via intent
+// Importante: o intent de INSERT de contato usa extras "S.xxx" (nome, telefone, email),
+// e NÃO aceita o vCard inteiro num parâmetro "data=" (isso falha silenciosamente).
 try {
-const vcardEncoded = encodeURIComponent(vcardTexto);
-const intent = `intent://addcontact#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact;data=${vcardEncoded};end`;
+let intent = 'intent://contacts#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact';
+if (nome) intent += `;S.name=${encodeURIComponent(nome)}`;
+if (telefone) intent += `;S.phone=${encodeURIComponent(telefone)}`;
+if (email) intent += `;S.email=${encodeURIComponent(email)}`;
+if (empresa) intent += `;S.company=${encodeURIComponent(empresa)}`;
+intent += ';end';
 
-const link = document.createElement('a');
-link.href = intent;
-link.click();
+// Detecta se o app de contatos realmente abriu; se não, cai no download
+let abriu = false;
+const marcarAberto = () => { if (document.hidden) abriu = true; };
+document.addEventListener('visibilitychange', marcarAberto);
 
+window.location.href = intent;
+
+setTimeout(() => {
+document.removeEventListener('visibilitychange', marcarAberto);
+if (abriu) {
 mostrarModal('✅', 'Contato Aberto!',
 '📱 O app de contatos foi aberto.\n\nToque em "SALVAR" para adicionar o contato à sua agenda.',
 'success'
 );
+} else {
+// O intent não conseguiu abrir nada (app indisponível/bloqueado) — baixa o arquivo
+baixarVCard(vcardTexto, nome);
+mostrarModal('📥', 'Contato Salvo!',
+'Não foi possível abrir o app de contatos automaticamente.\n\nO arquivo .vcf foi baixado — toque na notificação de download para importar o contato.',
+'info'
+);
+}
+}, 1200);
 return;
 } catch (e) {
 // Fallback: baixa o arquivo
 baixarVCard(vcardTexto, nome);
+mostrarModal('📥', 'Contato Salvo!',
+'O arquivo .vcf foi baixado.\n\n📁 Toque na notificação de download para importar o contato.',
+'info'
+);
 }
 return;
 }
