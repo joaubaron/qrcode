@@ -1955,11 +1955,21 @@ const tipos = [];
 
 // 1. vCard
 if (texto.trim().startsWith('BEGIN:VCARD')) {
+const vNome = texto.match(/FN:([^\n\r]+)/);
+const vTel = texto.match(/TEL[^:]*:([^\n\r]+)/);
+const vEmail = texto.match(/EMAIL[^:]*:([^\n\r]+)/);
+const vOrg = texto.match(/ORG:([^\n\r]+)/);
 tipos.push({
 tipo: 'vcard',
 icone: '👤',
 label: 'Contato',
 cor: '#6f42c1',
+dados: {
+nome: vNome?.[1]?.trim() || '',
+telefone: vTel?.[1]?.trim() || '',
+email: vEmail?.[1]?.trim() || '',
+empresa: vOrg?.[1]?.trim() || ''
+},
 acoes: ['salvar_contato']
 });
 }
@@ -2339,18 +2349,15 @@ let html = `<strong>${tipo.label} Detectado!</strong><br>`;
 if (tipo.dados) {
 switch (tipo.tipo) {
 case 'vcard':
-const nome = textoLido.match(/FN:([^\n]+)/);
-const tel = textoLido.match(/TEL:([^\n]+)/);
-const email = textoLido.match(/EMAIL:([^\n]+)/);
-const org = textoLido.match(/ORG:([^\n]+)/);
+const { nome: vcNome, telefone: vcTel, email: vcEmail, empresa: vcOrg } = tipo.dados;
 html += `<span style="font-size:13px;color:#6b7280;">
-Nome: ${escapeHTML(nome?.[1]) || 'N/A'}<br>
-Telefone: ${escapeHTML(tel?.[1]) || 'N/A'}<br>
-E-mail: ${escapeHTML(email?.[1]) || 'N/A'}<br>
-${org ? `Empresa: ${escapeHTML(org[1])}` : ''}<br>
+Nome: ${escapeHTML(vcNome) || 'N/A'}<br>
+Telefone: ${escapeHTML(vcTel) || 'N/A'}<br>
+E-mail: ${escapeHTML(vcEmail) || 'N/A'}<br>
+${vcOrg ? `Empresa: ${escapeHTML(vcOrg)}` : ''}<br>
 </span>
 <span style="font-size:12px;color:#6f42c1;font-weight:600;display:block;margin-top:6px;">
-💡 Clique em "Salvar Contato" para baixar o arquivo .vcf
+💡 Toque em "Salvar" para adicionar aos contatos
 </span>`;
 break;
 case 'wifi':
