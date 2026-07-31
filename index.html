@@ -2210,6 +2210,17 @@ iniciarLeitor();
 }, 500);
 }
 
+// ===== SANITIZAÇÃO DE DADOS LIDOS (evita XSS ao escanear QR Codes de terceiros) =====
+function escapeHTML(valor) {
+if (valor === null || valor === undefined) return '';
+return String(valor)
+.replace(/&/g, '&amp;')
+.replace(/</g, '&lt;')
+.replace(/>/g, '&gt;')
+.replace(/"/g, '&quot;')
+.replace(/'/g, '&#39;');
+}
+
 // ===== FUNÇÃO PRINCIPAL DO LEITOR =====
 function processarResultadoLeitor(textoLido) {
 leitorResultado = textoLido;
@@ -2234,10 +2245,10 @@ const tel = textoLido.match(/TEL:([^\n]+)/);
 const email = textoLido.match(/EMAIL:([^\n]+)/);
 const org = textoLido.match(/ORG:([^\n]+)/);
 html += `<span style="font-size:13px;color:#6b7280;">
-Nome: ${nome?.[1] || 'N/A'}<br>
-Telefone: ${tel?.[1] || 'N/A'}<br>
-E-mail: ${email?.[1] || 'N/A'}<br>
-${org ? `Empresa: ${org[1]}` : ''}<br>
+Nome: ${escapeHTML(nome?.[1]) || 'N/A'}<br>
+Telefone: ${escapeHTML(tel?.[1]) || 'N/A'}<br>
+E-mail: ${escapeHTML(email?.[1]) || 'N/A'}<br>
+${org ? `Empresa: ${escapeHTML(org[1])}` : ''}<br>
 </span>
 <span style="font-size:12px;color:#6f42c1;font-weight:600;display:block;margin-top:6px;">
 💡 Clique em "Salvar Contato" para baixar o arquivo .vcf
@@ -2246,61 +2257,61 @@ break;
 case 'wifi':
 const { ssid, tipo: seg, senha } = tipo.dados;
 html += `<span style="font-size:13px;color:#6b7280;">
-Rede: ${ssid || 'N/A'}<br>
-Segurança: ${seg || 'N/A'}<br>
+Rede: ${escapeHTML(ssid) || 'N/A'}<br>
+Segurança: ${escapeHTML(seg) || 'N/A'}<br>
 Senha: ${senha ? '••••••••' : 'Sem senha'}
 </span>`;
 break;
 case 'whatsapp':
 html += `<span style="font-size:13px;color:#6b7280;">
-Número: ${tipo.dados.numero || 'N/A'}
+Número: ${escapeHTML(tipo.dados.numero) || 'N/A'}
 </span>`;
 break;
 case 'instagram':
 html += `<span style="font-size:13px;color:#6b7280;">
-@${tipo.dados.usuario || 'N/A'}
+@${escapeHTML(tipo.dados.usuario) || 'N/A'}
 </span>`;
 break;
 case 'maps':
 html += `<span style="font-size:13px;color:#6b7280;">
-📍 ${tipo.dados.endereco || 'N/A'}
+📍 ${escapeHTML(tipo.dados.endereco) || 'N/A'}
 </span>`;
 break;
 case 'evento':
 const { titulo, data, local } = tipo.dados;
 html += `<span style="font-size:13px;color:#6b7280;">
-${titulo || 'Evento'}<br>
-${data ? `📆 ${data}` : ''}<br>
-${local ? `📍 ${local}` : ''}
+${escapeHTML(titulo) || 'Evento'}<br>
+${data ? `📆 ${escapeHTML(data)}` : ''}<br>
+${local ? `📍 ${escapeHTML(local)}` : ''}
 </span>`;
 break;
 case 'email':
 const { email: dest, assunto, mensagem } = tipo.dados;
 html += `<span style="font-size:13px;color:#6b7280;">
-Para: ${dest || 'N/A'}<br>
-Assunto: ${assunto || 'N/A'}<br>
-${mensagem ? `Mensagem: ${mensagem.substring(0, 50)}${mensagem.length > 50 ? '...' : ''}` : ''}
+Para: ${escapeHTML(dest) || 'N/A'}<br>
+Assunto: ${escapeHTML(assunto) || 'N/A'}<br>
+${mensagem ? `Mensagem: ${escapeHTML(mensagem.substring(0, 50))}${mensagem.length > 50 ? '...' : ''}` : ''}
 </span>`;
 break;
 case 'telefone':
 html += `<span style="font-size:13px;color:#6b7280;">
-📞 ${tipo.dados.numero || 'N/A'}
+📞 ${escapeHTML(tipo.dados.numero) || 'N/A'}
 </span>`;
 break;
 case 'sms':
 html += `<span style="font-size:13px;color:#6b7280;">
-Para: ${tipo.dados.numero || 'N/A'}<br>
-${tipo.dados.mensagem ? `Mensagem: ${tipo.dados.mensagem.substring(0, 50)}${tipo.dados.mensagem.length > 50 ? '...' : ''}` : ''}
+Para: ${escapeHTML(tipo.dados.numero) || 'N/A'}<br>
+${tipo.dados.mensagem ? `Mensagem: ${escapeHTML(tipo.dados.mensagem.substring(0, 50))}${tipo.dados.mensagem.length > 50 ? '...' : ''}` : ''}
 </span>`;
 break;
 case 'geo':
 html += `<span style="font-size:13px;color:#6b7280;">
-🌍 Coordenadas: ${tipo.dados.coordenadas || 'N/A'}
+🌍 Coordenadas: ${escapeHTML(tipo.dados.coordenadas) || 'N/A'}
 </span>`;
 break;
 case 'url':
 html += `<span style="font-size:13px;color:#6b7280;">
-${tipo.dados.url || 'N/A'}
+${escapeHTML(tipo.dados.url) || 'N/A'}
 </span>`;
 break;
 default:
