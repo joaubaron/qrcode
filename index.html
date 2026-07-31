@@ -1533,16 +1533,40 @@ mostrarModal('⚠️', 'Campo Vazio', 'Digite o nome do contato.', 'warning');
 return;
 }
 
-// Gera o vCard
-let txt = `BEGIN:VCARD\nVERSION:3.0\nFN:${escaparVCard(nome)}\nTEL:${escaparVCard(telefone)}`;
-if (email) txt += `\nEMAIL:${escaparVCard(email)}`;
-if (empresa) txt += `\nORG:${escaparVCard(empresa)}`;
-txt += `\nEND:VCARD`;
+// Limpa o telefone: remove espaços, parênteses, traços, mantém apenas dígitos e +
+const telefoneLimpo = telefone.replace(/[^0-9+]/g, '');
+
+// Divide o nome em partes para o campo N (estruturado)
+const partesNome = nome.trim().split(/\s+/);
+const sobrenome = partesNome.length > 1 ? partesNome.slice(1).join(' ') : '';
+const primeiroNome = partesNome[0] || '';
+
+// Gera o vCard com campo N estruturado
+let txt = `BEGIN:VCARD\nVERSION:3.0\n`;
+txt += `FN:${escaparVCard(nome)}\n`; // Nome completo para exibição
+txt += `N:${escaparVCard(sobrenome)};${escaparVCard(primeiroNome)};;;\n`; // Nome estruturado
+
+// Telefone - formato internacional (com + se presente)
+if (telefoneLimpo) {
+// Se não começar com +, adiciona +55 para Brasil (padrão)
+let telFormatado = telefoneLimpo;
+if (!telFormatado.startsWith('+')) {
+// Se tem 10-11 dígitos (sem DDI), assume +55
+if (telFormatado.length >= 10 && telFormatado.length <= 11) {
+telFormatado = '+55' + telFormatado;
+}
+}
+txt += `TEL;TYPE=CELL:${escaparVCard(telFormatado)}\n`;
+}
+
+if (email) txt += `EMAIL:${escaparVCard(email)}\n`;
+if (empresa) txt += `ORG:${escaparVCard(empresa)}\n`;
+txt += `END:VCARD`;
 
 // Renderiza QR Code
 renderizarQR('qrcode-contato', txt);
 const infoEl = document.getElementById('infoContato');
-infoEl.textContent = `${nome}${telefone ? ' · ' + telefone : ''}${email ? ' · ' + email : ''}`;
+infoEl.textContent = `${nome}${telefone ? ' · ' + telefoneLimpo : ''}${email ? ' · ' + email : ''}`;
 infoEl.dataset.raw = txt;
 
 // ===== ABRE DIRETO NOS CONTATOS =====
@@ -1550,43 +1574,26 @@ const isAndroid = /Android/i.test(navigator.userAgent);
 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 if (isAndroid) {
-// ANDROID: Abre direto no app de contatos via intent
-// Usa extras "S.xxx" (nome, telefone, email) — o vCard inteiro num "data=" falha silenciosamente.
+// ANDROID: Abre via intent
 try {
-let intent = 'intent://contacts#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact';
-if (nome) intent += `;S.name=${encodeURIComponent(nome)}`;
-if (telefone) intent += `;S.phone=${encodeURIComponent(telefone)}`;
-if (email) intent += `;S.email=${encodeURIComponent(email)}`;
-if (empresa) intent += `;S.company=${encodeURIComponent(empresa)}`;
-intent += ';end';
+// Usa o formato correto para o Android
+const vcardEncoded = encodeURIComponent(txt);
+// Intent mais compatível com versões recentes do Android
+const intent = `intent://addcontact#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact;data=${vcardEncoded};end`;
 
-let abriu = false;
-const marcarAberto = () => { if (document.hidden) abriu = true; };
-document.addEventListener('visibilitychange', marcarAberto);
+const link = document.createElement('a');
+link.href = intent;
+link.click();
 
-window.location.href = intent;
-
-setTimeout(() => {
-document.removeEventListener('visibilitychange', marcarAberto);
-if (abriu) {
 mostrarModal('✅', 'Contato Aberto!', 
-'📱 O app de contatos foi aberto.\n\n"Salvar" adicionar o contato à sua agenda.',
+'📱 O app de contatos foi aberto.\n\nToque em "SALVAR" para adicionar o contato à sua agenda.\n\nVerifique se o nome e telefone estão corretos.',
 'success'
 );
-} else {
-baixarVCard(txt, nome);
-mostrarModal('📥', 'Contato Gerado!',
-'Não foi possível abrir o app de contatos automaticamente.\n\nO arquivo .vcf foi baixado — toque na notificação de download para importar o contato.',
-'info'
-);
-}
 salvarDados();
-}, 1200);
 return;
 } catch (e) {
 // Fallback: baixa o arquivo
 baixarVCard(txt, nome);
-salvarDados();
 }
 return;
 }
