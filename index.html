@@ -1503,6 +1503,15 @@ return;
 }
 
 const numeroLimpo = apenasDigitos(numero).replace('+', '');
+
+// Valida se o DDI (código do país) foi informado.
+// Números brasileiros sem DDI têm 10-11 dígitos (DDD + número);
+// com DDI (55) somam 12-13 dígitos. Abaixo de 12, o DDI provavelmente está faltando.
+if (numeroLimpo.length < 12) {
+mostrarModal('⚠️', 'Número Incompleto', 'Inclua o DDI (código do país) antes do DDD.\n\nEx: 55 47 99999-9999', 'warning');
+return;
+}
+
 let txt = `https://wa.me/${numeroLimpo}`;
 if (mensagem) txt += `?text=${encodeURIComponent(mensagem)}`;
 
@@ -1784,7 +1793,6 @@ infoEl.dataset.raw = '';
 });
 
 document.getElementById('linkInput').value = '';
-document.getElementById('urlErro').classList.remove('visivel');
 document.getElementById('linkInput').classList.remove('erro');
 
 document.getElementById('wifi-ssid').value = '';
