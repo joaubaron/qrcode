@@ -1841,21 +1841,61 @@ URL.revokeObjectURL(link.href);
 
 // ===== SALVAR CONTATO VCARD =====
 function salvarContatoVCard(vcardTexto) {
-const blob = new Blob([vcardTexto], { type: 'text/vcard;charset=utf-8' });
-const link = document.createElement('a');
-link.href = URL.createObjectURL(blob);
-
-let nomeArquivo = 'contato.vcf';
+let nome = 'contato';
 const nomeMatch = vcardTexto.match(/FN:(.+?)(?:\n|$)/);
-if (nomeMatch) {
-nomeArquivo = nomeMatch[1].trim().replace(/[^a-zA-Z0-9]/g, '_') + '.vcf';
+if (nomeMatch) nome = nomeMatch[1].trim();
+
+// ===== ABRE DIRETO NOS CONTATOS (mesma lógica do gerarContato) =====
+const isAndroid = /Android/i.test(navigator.userAgent);
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+if (isAndroid) {
+// ANDROID: Abre direto no app de contatos via intent
+try {
+const vcardEncoded = encodeURIComponent(vcardTexto);
+const intent = `intent://addcontact#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact;data=${vcardEncoded};end`;
+
+const link = document.createElement('a');
+link.href = intent;
+link.click();
+
+mostrarModal('✅', 'Contato Aberto!',
+'📱 O app de contatos foi aberto.\n\nToque em "SALVAR" para adicionar o contato à sua agenda.',
+'success'
+);
+return;
+} catch (e) {
+// Fallback: baixa o arquivo
+baixarVCard(vcardTexto, nome);
+}
+return;
 }
 
-link.download = nomeArquivo;
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-URL.revokeObjectURL(link.href);
+if (isIOS) {
+// IOS: Abre usando data URL
+try {
+const vcardEncoded = encodeURIComponent(vcardTexto);
+const url = `data:text/vcard;charset=utf-8,${vcardEncoded}`;
+window.open(url, '_blank');
+
+mostrarModal('✅', 'Contato Aberto!',
+'📱 O contato foi aberto.\n\nToque em "Adicionar Contato" ou "Salvar" para importar.',
+'success'
+);
+return;
+} catch (e) {
+baixarVCard(vcardTexto, nome);
+}
+return;
+}
+
+// DESKTOP: Baixa o arquivo .vcf
+baixarVCard(vcardTexto, nome);
+
+mostrarModal('📥', 'Contato Salvo!',
+'O arquivo .vcf foi baixado.\n\n📁 Abra o arquivo para importar o contato no seu gerenciador de contatos (Outlook, Google Contacts, etc).',
+'info'
+);
 }
 
 // ===== DETECTOR DE TIPOS DE QR CODE =====
