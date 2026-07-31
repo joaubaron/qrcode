@@ -1533,33 +1533,35 @@ mostrarModal('⚠️', 'Campo Vazio', 'Digite o nome do contato.', 'warning');
 return;
 }
 
-// Limpa o telefone: remove espaços, parênteses, traços, mantém apenas dígitos e +
-const telefoneLimpo = telefone.replace(/[^0-9+]/g, '');
+// LIMPA O TELEFONE: remove espaços, parênteses, traços, mantém apenas dígitos e +
+let telefoneLimpo = telefone.replace(/[^0-9+]/g, '');
+// Se não tiver +, assume que é brasileiro e adiciona +55
+if (telefoneLimpo && !telefoneLimpo.startsWith('+')) {
+// Remove o 55 duplicado se já tiver
+if (telefoneLimpo.startsWith('55')) {
+telefoneLimpo = '+' + telefoneLimpo;
+} else {
+telefoneLimpo = '+55' + telefoneLimpo;
+}
+}
 
 // Divide o nome em partes para o campo N (estruturado)
 const partesNome = nome.trim().split(/\s+/);
-const sobrenome = partesNome.length > 1 ? partesNome.slice(1).join(' ') : '';
 const primeiroNome = partesNome[0] || '';
+const sobrenome = partesNome.slice(1).join(' ') || '';
 
-// Gera o vCard com campo N estruturado
+// Gera o vCard com formatação CORRETA para Android
 let txt = `BEGIN:VCARD\nVERSION:3.0\n`;
 txt += `FN:${escaparVCard(nome)}\n`; // Nome completo para exibição
-txt += `N:${escaparVCard(sobrenome)};${escaparVCard(primeiroNome)};;;\n`; // Nome estruturado
+// NOME ESTRUTURADO: N:sobrenome;nome;nome_meio;prefixo;sufixo
+txt += `N:${escaparVCard(sobrenome)};${escaparVCard(primeiroNome)};;;\n`;
 
-// Telefone - formato internacional (com + se presente)
+// Telefone - formato internacional
 if (telefoneLimpo) {
-// Se não começar com +, adiciona +55 para Brasil (padrão)
-let telFormatado = telefoneLimpo;
-if (!telFormatado.startsWith('+')) {
-// Se tem 10-11 dígitos (sem DDI), assume +55
-if (telFormatado.length >= 10 && telFormatado.length <= 11) {
-telFormatado = '+55' + telFormatado;
-}
-}
-txt += `TEL;TYPE=CELL:${escaparVCard(telFormatado)}\n`;
+txt += `TEL;TYPE=CELL;PREF:${escaparVCard(telefoneLimpo)}\n`;
 }
 
-if (email) txt += `EMAIL:${escaparVCard(email)}\n`;
+if (email) txt += `EMAIL;TYPE=WORK:${escaparVCard(email)}\n`;
 if (empresa) txt += `ORG:${escaparVCard(empresa)}\n`;
 txt += `END:VCARD`;
 
@@ -1574,19 +1576,25 @@ const isAndroid = /Android/i.test(navigator.userAgent);
 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 if (isAndroid) {
-// ANDROID: Abre via intent
+// ANDROID: Abre via intent com vCard completo
 try {
-// Usa o formato correto para o Android
-const vcardEncoded = encodeURIComponent(txt);
-// Intent mais compatível com versões recentes do Android
-const intent = `intent://addcontact#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact;data=${vcardEncoded};end`;
+// Cria um arquivo .vcf temporário
+const blob = new Blob([txt], { type: 'text/vcard;charset=utf-8' });
+const url = URL.createObjectURL(blob);
+
+// Tenta abrir com intent
+const intent = `intent://addcontact#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact;data=${encodeURIComponent(txt)};end`;
 
 const link = document.createElement('a');
 link.href = intent;
 link.click();
 
+setTimeout(() => {
+URL.revokeObjectURL(url);
+}, 5000);
+
 mostrarModal('✅', 'Contato Aberto!', 
-'📱 O app de contatos foi aberto.\n\nToque em "SALVAR" para adicionar o contato à sua agenda.\n\nVerifique se o nome e telefone estão corretos.',
+'📱 O app de contatos foi aberto.\n\nVerifique se o nome e telefone estão corretos antes de salvar.\n\nNome: ' + nome + '\nTelefone: ' + telefoneLimpo,
 'success'
 );
 salvarDados();
@@ -1606,7 +1614,7 @@ const url = `data:text/vcard;charset=utf-8,${vcardEncoded}`;
 window.open(url, '_blank');
 
 mostrarModal('✅', 'Contato Aberto!', 
-'📱 O contato foi aberto.\n\nToque em "Adicionar Contato" ou "Salvar" para importar.',
+'📱 O contato foi aberto.\n\nToque em "Adicionar Contato" para importar.',
 'success'
 );
 salvarDados();
@@ -1621,7 +1629,7 @@ return;
 baixarVCard(txt, nome);
 
 mostrarModal('📥', 'Contato Gerado!', 
-'O arquivo .vcf foi baixado.\n\n📁 Abra o arquivo para importar o contato no seu gerenciador de contatos (Outlook, Google Contacts, etc).',
+'O arquivo .vcf foi baixado.\n\n📁 Abra o arquivo para importar o contato.',
 'info'
 );
 salvarDados();
