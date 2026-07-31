@@ -9,9 +9,6 @@ const ASSETS = [
 '/qrcode.min.js',
 '/icons/icone192.png',
 '/icons/icone512.png',
-'/icons/favicon-32x32.png',
-'/icons/favicon-16x16.png',
-'/icons/apple-touch-icon.png'
 ];
 
 // Instalação
